@@ -1,82 +1,82 @@
 #!/usr/bin/env bash
 #
 # System Required:  CentOS 7+, Debian 10+, Ubuntu 20+
-# Description:      Script to SSL manage
+# Description:      SSL management script
 #
 # Copyright (C) 2025 zxcvos
 #
-# optimized by AI(Qwen2.5-Max-QwQ)
+# Оптимизировано AI(Qwen2.5-Max-QwQ)
 #
 # acme.sh: https://github.com/acmesh-official/acme.sh
 
-# 颜色定义
+# Цветовые определения
 readonly RED='\033[1;31;31m'
 readonly GREEN='\033[1;31;32m'
 readonly YELLOW='\033[1;31;33m'
 readonly NC='\033[0m'
 
-# 可选参数正则表达式
+# Регулярное выражение для опциональных параметров
 readonly OP_REGEX='(^--(help|update|purge|issue|(stop-)?renew|check-cron|info|www|domain|email|nginx|webroot|tls)$)|(^-[upirscdenwt]$)'
 
-# 用户操作
+# Действие пользователя
 declare action=''
 
-# 可选值
+# Опциональные значения
 declare -a domains=()
 declare account_email=''
 declare nginx_config_path=''
 declare acme_webroot_path=''
 declare ssl_cert_path=''
 
-# 状态打印函数
+# Функции вывода статуса
 function print_info() {
-  printf "${GREEN}[信息] ${NC}%s\n" "$*"
+  printf "${GREEN}[INFO] ${NC}%s\n" "$*"
 }
 
 function print_warn() {
-  printf "${YELLOW}[警告] ${NC}%s\n" "$*"
+  printf "${YELLOW}[WARN] ${NC}%s\n" "$*"
 }
 
 function print_error() {
-  printf "${RED}[错误] ${NC}%s\n" "$*"
+  printf "${RED}[ERROR] ${NC}%s\n" "$*"
   exit 1
 }
 
-# 安装 acme.sh
+# Установка acme.sh
 function install_acme_sh() {
   [[ -e "${HOME}/.acme.sh/acme.sh" ]] && exit 0
-  print_info "正在安装 acme.sh..."
-  curl https://get.acme.sh | sh -s email=${account_email} || print_error "acme.sh 安装失败。"
-  "${HOME}/.acme.sh/acme.sh" --upgrade --auto-upgrade || print_error "acme.sh 自动升级设置失败。"
-  "${HOME}/.acme.sh/acme.sh" --set-default-ca --server zerossl || print_error "设置默认 CA 失败。"
+  print_info "Установка acme.sh..."
+  curl https://get.acme.sh | sh -s email=${account_email} || print_error "Ошибка установки acme.sh."
+  "${HOME}/.acme.sh/acme.sh" --upgrade --auto-upgrade || print_error "Ошибка настройки автообновления acme.sh."
+  "${HOME}/.acme.sh/acme.sh" --set-default-ca --server zerossl || print_error "Ошибка установки CA по умолчанию."
 }
 
-# 更新 acme.sh
+# Обновление acme.sh
 function update_acme_sh() {
-  print_info "正在更新 acme.sh..."
-  "${HOME}/.acme.sh/acme.sh" --upgrade || print_error "acme.sh 更新失败。"
+  print_info "Обновление acme.sh..."
+  "${HOME}/.acme.sh/acme.sh" --upgrade || print_error "Ошибка обновления acme.sh."
 }
 
-# 卸载 acme.sh
+# Удаление acme.sh
 function purge_acme_sh() {
-  print_info "正在卸载 acme.sh..."
-  "${HOME}/.acme.sh/acme.sh" --upgrade --auto-upgrade 0 || print_error "禁用 acme.sh 自动升级失败。"
-  "${HOME}/.acme.sh/acme.sh" --uninstall || print_error "acme.sh 卸载失败。"
+  print_info "Удаление acme.sh..."
+  "${HOME}/.acme.sh/acme.sh" --upgrade --auto-upgrade 0 || print_error "Ошибка отключения автообновления acme.sh."
+  "${HOME}/.acme.sh/acme.sh" --uninstall || print_error "Ошибка удаления acme.sh."
   rm -rf "${HOME}/.acme.sh" "${acme_webroot_path}" "${nginx_config_path}/certs"
 }
 
-# 签发证书
+# Выпуск сертификата
 function issue_certificate() {
-  print_info "正在签发 SSL 证书..."
+  print_info "Выпуск SSL сертификата..."
 
-  # 创建必要的目录
-  [[ -d "${acme_webroot_path}" ]] || mkdir -vp "${acme_webroot_path}" || print_error "无法创建 ACME 验证目录: ${acme_webroot_path}"
-  [[ -d "${ssl_cert_path}" ]] || mkdir -vp "${ssl_cert_path}" || print_error "无法创建 SSL 证书目录: ${ssl_cert_path}"
+  # Создание необходимых директорий
+  [[ -d "${acme_webroot_path}" ]] || mkdir -vp "${acme_webroot_path}" || print_error "Не удалось создать директорию верификации ACME: ${acme_webroot_path}"
+  [[ -d "${ssl_cert_path}" ]] || mkdir -vp "${ssl_cert_path}" || print_error "Не удалось создать директорию SSL сертификатов: ${ssl_cert_path}"
 
-  # 备份原始配置
+  # Резервное копирование оригинальной конфигурации
   mv -f /usr/local/nginx/conf/nginx.conf /usr/local/nginx/conf/nginx.conf.bak
 
-  # 创建申请证书专用配置
+  # Создание специальной конфигурации для запроса сертификата
   cat >/usr/local/nginx/conf/nginx.conf <<EOF
 user                 root;
 pid                  /run/nginx.pid;
@@ -98,14 +98,14 @@ http {
 }
 EOF
 
-  # 确保 Nginx 正在运行
+  # Проверка работы Nginx
   if systemctl is-active --quiet nginx; then
-    nginx -t && systemctl reload nginx || print_error "Nginx 启动失败，请检查配置文件。"
+    nginx -t && systemctl reload nginx || print_error "Ошибка запуска Nginx, проверьте конфигурацию."
   else
-    nginx -t && systemctl start nginx || print_error "Nginx 启动失败，请检查配置文件。"
+    nginx -t && systemctl start nginx || print_error "Ошибка запуска Nginx, проверьте конфигурацию."
   fi
 
-  # 签发证书
+  # Выпуск сертификата
   "${HOME}/.acme.sh/acme.sh" --issue $(printf -- " -d %s" "${domains[@]}") \
     --webroot "${acme_webroot_path}" \
     --keylength ec-256 \
@@ -114,7 +114,7 @@ EOF
     --ocsp
 
   if [[ $? -ne 0 ]]; then
-    print_warn "首次签发失败，尝试启用调试模式重新签发..."
+    print_warn "Первая попытка выпуска не удалась, пробуем в режиме отладки..."
     "${HOME}/.acme.sh/acme.sh" --issue $(printf -- " -d %s" "${domains[@]}") \
       --webroot "${acme_webroot_path}" \
       --keylength ec-256 \
@@ -122,87 +122,87 @@ EOF
       --server zerossl \
       --ocsp \
       --debug
-    # 恢复原始配置
+    # Восстановление оригинальной конфигурации
     mv -f /usr/local/nginx/conf/nginx.conf.bak /usr/local/nginx/conf/nginx.conf
-    print_error "ECC 证书申请失败。"
+    print_error "Ошибка запроса ECC сертификата."
   fi
 
-  # 恢复原始配置
+  # Восстановление оригинальной конфигурации
   mv -f /usr/local/nginx/conf/nginx.conf.bak /usr/local/nginx/conf/nginx.conf
 
-  # 重启 nginx
-  nginx -t && systemctl reload nginx || print_error "Nginx 启动失败，请检查配置文件。"
+  # Перезагрузка nginx
+  nginx -t && systemctl reload nginx || print_error "Ошибка запуска Nginx, проверьте конфигурацию."
 
-  # 安装证书
+  # Установка сертификата
   "${HOME}/.acme.sh/acme.sh" --install-cert --ecc $(printf -- " -d %s" "${domains[@]}") \
     --key-file "${ssl_cert_path}/privkey.pem" \
     --fullchain-file "${ssl_cert_path}/fullchain.pem" \
-    --reloadcmd "nginx -t && systemctl reload nginx" || print_error "安装证书失败。"
+    --reloadcmd "nginx -t && systemctl reload nginx" || print_error "Ошибка установки сертификата."
 }
 
-# 续期证书
+# Обновление сертификатов
 function renew_certificates() {
-  print_info "正在强制续期所有 SSL 证书..."
-  "${HOME}/.acme.sh/acme.sh" --cron --force || print_error "续期失败。"
+  print_info "Принудительное обновление всех SSL сертификатов..."
+  "${HOME}/.acme.sh/acme.sh" --cron --force || print_error "Ошибка обновления."
 }
 
-# 停止续期证书
+# Остановка обновления сертификатов
 function stop_renew_certificates() {
-  print_info "正在停止续期指定的 SSL 证书..."
-  "${HOME}/.acme.sh/acme.sh" --remove $(printf -- " -d %s" "${domains[@]}") --ecc || print_error "停止续期失败。"
+  print_info "Остановка обновления указанных SSL сертификатов..."
+  "${HOME}/.acme.sh/acme.sh" --remove $(printf -- " -d %s" "${domains[@]}") --ecc || print_error "Ошибка остановки обновления."
   rm -rf $(printf -- " ${HOME}/.acme.sh/%s_ecc" "${domains[@]}")
   rm -rf $(printf -- " ${nginx_config_path}/certs/%s" "${domains[@]}")
 }
 
-# 检查定时任务
+# Проверка cron задач
 function check_cron_jobs() {
-  print_info "正在检查自动续期的定时任务设置..."
-  "${HOME}/.acme.sh/acme.sh" --cron --home "${HOME}/.acme.sh" || print_error "检查定时任务失败。"
+  print_info "Проверка настроек автоматического обновления..."
+  "${HOME}/.acme.sh/acme.sh" --cron --home "${HOME}/.acme.sh" || print_error "Ошибка проверки cron задач."
 }
 
-# 显示证书信息
+# Отображение информации о сертификате
 function show_certificate_info() {
-  print_info "正在显示 SSL 证书信息..."
-  "${HOME}/.acme.sh/acme.sh" --info $(printf -- " -d %s" "${domains[@]}") || print_error "获取证书信息失败。"
+  print_info "Отображение информации о SSL сертификате..."
+  "${HOME}/.acme.sh/acme.sh" --info $(printf -- " -d %s" "${domains[@]}") || print_error "Ошибка получения информации о сертификате."
 }
 
-# 查询 nginx 配置目录
+# Поиск директории конфигурации nginx
 function find_nginx_config() {
   if [[ -d /etc/nginx ]]; then
     echo "/etc/nginx"
   elif [[ -d /usr/local/nginx/conf ]]; then
     echo "/usr/local/nginx/conf"
   else
-    print_error "未找到 Nginx 配置路径"
+    print_error "Директория конфигурации Nginx не найдена"
   fi
 }
 
-# 显示帮助信息
+# Отображение справки
 function show_help() {
   cat <<EOF
-用法: $0 [命令] [选项]
+Использование: $0 [команда] [опции]
 
-命令:
-  --install           安装 acme.sh
-  -u, --update        更新 acme.sh
-  -p, --purge         卸载 acme.sh 并删除相关目录
-  -i, --issue         签发/更新 SSL 证书
-  -r, --renew         强制续期所有 SSL 证书
-  -s, --stop-renew    停止续期指定的 SSL 证书
-  -c, --check-cron    检查自动续期的定时任务设置
-      --info          显示 SSL 证书信息
+Команды:
+  --install           Установка acme.sh
+  -u, --update        Обновление acme.sh
+  -p, --purge         Удаление acme.sh и связанных директорий
+  -i, --issue         Выпуск/обновление SSL сертификата
+  -r, --renew         Принудительное обновление всех SSL сертификатов
+  -s, --stop-renew    Остановка обновления указанных SSL сертификатов
+  -c, --check-cron    Проверка настроек автоматического обновления
+      --info          Отображение информации о SSL сертификате
 
-选项:
-  -d, --domain        指定域名（可多次使用以指定多个域名）
-  -n, --nginx         指定 Nginx 配置路径
-  -w, --webroot       指定 ACME 验证目录路径
-  -t, --tls           指定 SSL 证书目录路径（默认基于第一个域名）
-  -h, --help          显示此帮助信息
+Опции:
+  -d, --domain        Указание домена (можно использовать несколько раз)
+  -n, --nginx         Указание пути к конфигурации Nginx
+  -w, --webroot       Указание пути к директории верификации ACME
+  -t, --tls           Указание пути к директории SSL сертификатов (по умолчанию на основе первого домена)
+  -h, --help          Отображение этой справки
 EOF
   exit 0
 }
 
-# 参数解析
+# Разбор параметров
 while [[ $# -gt 0 ]]; do
   case "$1" in
   --install)
@@ -231,54 +231,54 @@ while [[ $# -gt 0 ]]; do
     ;;
   -d | --domain)
     shift
-    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "未提供有效的域名"
+    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "Не указан корректный домен"
     domains+=("$1")
     ;;
   -e | --email)
     shift
-    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "未提供邮箱"
+    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "Не указана почта"
     account_email="$1"
     ;;
   -n | --nginx)
     shift
-    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "未提供有效的 Nginx 配置路径"
+    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "Не указан корректный путь к конфигурации Nginx"
     nginx_config_path="$1"
     ;;
   -w | --webroot)
     shift
-    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "未提供有效的 ACME 验证目录路径"
+    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "Не указан корректный путь к директории верификации ACME"
     acme_webroot_path="$1"
     ;;
   -t | --tls)
     shift
-    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "未提供有效的 SSL 证书目录路径"
+    [[ -z "$1" || "$1" =~ ${OP_REGEX} ]] && print_error "Не указан корректный путь к директории SSL сертификатов"
     ssl_cert_path="$1"
     ;;
   -h | --help)
     show_help
     ;;
   *)
-    print_error "无效选项: '$1'。使用 '$0 -h/--help' 查看用法信息。"
+    print_error "Неверная опция: '$1'. Используйте '$0 -h/--help' для просмотра справки."
     ;;
   esac
   shift
 done
 
-# 参数验证
-[[ -z ${action} ]] && print_error "未指定操作。使用 --help 了解用法"
+# Проверка параметров
+[[ -z ${action} ]] && print_error "Не указано действие. Используйте --help для просмотра справки"
 
-# 初始化默认值
+# Инициализация значений по умолчанию
 nginx_config_path=${nginx_config_path:-$(find_nginx_config)}
 account_email=${account_email:-my@example.com}
 acme_webroot_path=${acme_webroot_path:-/var/www/_zerossl}
 ssl_cert_path=${ssl_cert_path:-${nginx_config_path}/certs/${domains[0]:-default}}
 
-# 检查 acme.sh 是否已安装
+# Проверка установки acme.sh
 if [[ ! -e "${HOME}/.acme.sh/acme.sh" && 'install' != ${action} ]]; then
-  print_error "请先使用 使用 '$0 --install [--email my@email.com]' 安装 acme.sh"
+  print_error "Сначала установите acme.sh используя '$0 --install [--email my@email.com]'"
 fi
 
-# 执行操作
+# Выполнение действия
 case "${action}" in
 install) install_acme_sh ;;
 update) update_acme_sh ;;

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # System Required:  CentOS 7+, Debian9+, Ubuntu16+
-# Description:      Script to Xray manage
+# Description:      Скрипт для управления Xray
 #
 # Copyright (C) 2025 zxcvos
 #
@@ -21,105 +21,105 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/snap/bin
 export PATH
 
-# color
+# цвета
 readonly RED='\033[1;31;31m'
 readonly GREEN='\033[1;31;32m'
 readonly YELLOW='\033[1;31;33m'
 readonly NC='\033[0m'
 
-# directory
+# директории
 readonly CUR_DIR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 readonly CUR_FILE="$(basename $0)"
 
-# install option
+# опции установки
 declare INSTALL_OPTION=''
 
-# specified version
+# указанная версия
 declare SPECIFIED_VERSION=''
 
-# status
+# статус
 declare STATUS=''
 
 # warp
 declare WARP=''
 
-# automation
+# автоматизация
 declare IS_AUTO=''
 
-# update config
+# обновление конфига
 declare UPDATE_CONFIG=''
 
-# sni config
+# sni конфиг
 declare SNI_CONFIG=''
 
-# xtls config
+# xtls конфиг
 declare XTLS_CONFIG='xhttp'
 
-# download url
+# URL загрузки
 declare DOWNLOAD_URL=''
 
-# xray port
+# порт xray
 declare XRAY_PORT=443
 
-# xray uuid
+# uuid xray
 declare XRAY_UUID=''
 
 # fallback uuid
 declare FALLBACK_UUID=''
 
-# kcp seed
+# seed kcp
 declare KCP_SEED=''
 
-# trojan password
+# пароль trojan
 declare TROJAN_PASSWORD=''
 
-# target domain
+# целевой домен
 declare TARGET_DOMAIN=''
 
-# server names
+# имена серверов
 declare SERVER_NAMES=''
 
-# private key
+# приватный ключ
 declare PRIVATE_KEY=''
 
-# public key
+# публичный ключ
 declare PUBLIC_KEY=''
 
 # short id
 declare SHORT_IDS=''
 
-# xhttp path
+# путь xhttp
 declare XHTTP_PATH=''
 
-# share link
+# ссылка для分享
 declare SHARE_LINK=''
 
-# status print
+# вывод статуса
 function _input_tips() {
-  printf "${GREEN}[输入提示] ${NC}"
+  printf "${GREEN}[Ввод] ${NC}"
   printf -- "%s" "$@"
 }
 
 function _info() {
-  printf "${GREEN}[信息] ${NC}"
+  printf "${GREEN}[Инфо] ${NC}"
   printf -- "%s" "$@"
   printf "\n"
 }
 
 function _warn() {
-  printf "${YELLOW}[警告] ${NC}"
+  printf "${YELLOW}[Предупреждение] ${NC}"
   printf -- "%s" "$@"
   printf "\n"
 }
 
 function _error() {
-  printf "${RED}[错误] ${NC}"
+  printf "${RED}[Ошибка] ${NC}"
   printf -- "%s" "$@"
   printf "\n"
   exit 1
 }
 
-# tools
+# утилиты
 function _exists() {
   local cmd="$1"
   if eval type type >/dev/null 2>&1; then
@@ -155,7 +155,7 @@ function _error_detect() {
   _info "${cmd}"
   eval ${cmd}
   if [[ $? -ne 0 ]]; then
-    _error "Execution command (${cmd}) failed, please check it and try again."
+    _error "Выполнение команды (${cmd}) не удалось, проверьте и попробуйте снова."
   fi
 }
 
@@ -226,35 +226,35 @@ function _systemctl() {
   local server_name="$2"
   case "${cmd}" in
   start)
-    _info "正在启动 ${server_name} 服务"
+    _info "Запуск службы ${server_name}"
     systemctl -q is-active ${server_name} || systemctl -q start ${server_name}
     systemctl -q is-enabled ${server_name} || systemctl -q enable ${server_name}
     sleep 2
-    systemctl -q is-active ${server_name} && _info "已启动 ${server_name} 服务" || _error "${server_name} 启动失败"
+    systemctl -q is-active ${server_name} && _info "Служба ${server_name} запущена" || _error "Не удалось запустить ${server_name}"
     ;;
   stop)
-    _info "正在暂停 ${server_name} 服务"
+    _info "Остановка службы ${server_name}"
     systemctl -q is-active ${server_name} && systemctl -q stop ${server_name}
     systemctl -q is-enabled ${server_name} && systemctl -q disable ${server_name}
     sleep 2
-    systemctl -q is-active ${server_name} || _info "已暂停 ${server_name} 服务"
+    systemctl -q is-active ${server_name} || _info "Служба ${server_name} остановлена"
     ;;
   restart)
-    _info "正在重启 ${server_name} 服务"
+    _info "Перезапуск службы ${server_name}"
     systemctl -q is-active ${server_name} && systemctl -q restart ${server_name} || systemctl -q start ${server_name}
     systemctl -q is-enabled ${server_name} || systemctl -q enable ${server_name}
     sleep 2
-    systemctl -q is-active ${server_name} && _info "已重启 ${server_name} 服务" || _error "${server_name} 启动失败"
+    systemctl -q is-active ${server_name} && _info "Служба ${server_name} перезапущена" || _error "Не удалось запустить ${server_name}"
     ;;
   reload)
-    _info "正在重载 ${server_name} 服务"
+    _info "Перезагрузка службы ${server_name}"
     systemctl -q is-active ${server_name} && systemctl -q reload ${server_name} || systemctl -q start ${server_name}
     systemctl -q is-enabled ${server_name} || systemctl -q enable ${server_name}
     sleep 2
-    systemctl -q is-active ${server_name} && _info "已重载 ${server_name} 服务"
+    systemctl -q is-active ${server_name} && _info "Служба ${server_name} перезагружена"
     ;;
   dr)
-    _info "正在重载 systemd 配置文件"
+    _info "Перезагрузка конфигурации systemd"
     systemctl daemon-reload
     ;;
   esac
@@ -262,43 +262,43 @@ function _systemctl() {
 
 function download_github_files() {
   local conf_dir="${1:-/usr/local/xray-script}"
-  local github_api="${2:-https://api.github.com/repos/zxcvos/Xray-script/contents}"
+  local github_api="${2:-https://api.github.com/repos/lyekka/Xray-script/contents}"
 
-  # 通过 GitHub API 获取目录/文件名
+  # Получение списка файлов/директорий через GitHub API
   local download_urls=$(curl -s ${github_api} | jq -r '.[] | select(.type=="file") | .download_url')
   local dirs=$(curl -s ${github_api} | jq -r '.[] | select(.type=="dir") | .name')
 
-  # 创建目录，并递归下载子目录下的所有文件
+  # Создание директорий и рекурсивная загрузка файлов из поддиректорий
   for dir in $dirs; do
     mkdir -vp ${conf_dir}/${dir}
     download_github_files ${conf_dir}/${dir} ${github_api}/${dir}
   done
 
-  # 遍历下载
+  # Загрузка файлов
   for download_url in $download_urls; do
     local file=${download_url##*/}
-    echo "正在下载 ${file}..."
+    echo "Загрузка ${file}..."
     wget --no-check-certificate -O "${conf_dir}/${file}" "${download_url}" || {
-      echo "下载失败: ${file}"
+      echo "Ошибка загрузки: ${file}"
       continue
     }
     chmod 0644 "${conf_dir}/${file}"
   done
 
-  echo "Github 文件已下载到 ${conf_dir}"
+  echo "Файлы с GitHub загружены в ${conf_dir}"
 }
 
 function check_xray_script_dependencies() {
   local -a dependencies=(
-    "ssl.sh|https://api.github.com/repos/zxcvos/Xray-script/contents/ssl.sh"
-    "nginx.sh|https://api.github.com/repos/zxcvos/Xray-script/contents/nginx.sh"
-    "docker.sh|https://api.github.com/repos/zxcvos/Xray-script/contents/docker.sh"
+    "ssl.sh|https://api.github.com/repos/lyekka/Xray-script/contents/ssl.sh"
+    "nginx.sh|https://api.github.com/repos/lyekka/Xray-script/contents/nginx.sh"
+    "docker.sh|https://api.github.com/repos/lyekka/Xray-script/contents/docker.sh"
   )
 
   local updated=false
   local target_dir="/usr/local/xray-script"
 
-  # 初次使用时，目录不存在，跳过更新检查
+  # При первом использовании, если директория не существует, пропускаем проверку обновлений
   if [[ ! -d "$target_dir" ]]; then
     return
   fi
@@ -308,106 +308,105 @@ function check_xray_script_dependencies() {
     local local_file="${target_dir}/${filename}"
     local tmp_file="${local_file}.tmp"
 
-    # 获取远程文件大小
+    # Получаем размер удаленного файла
     local remote_size
     if ! remote_size=$(curl -fsSL "$api_url" | jq -r '.size'); then
-      _info "获取 ${filename} 元数据失败，跳过更新检查"
+      _info "Не удалось получить метаданные ${filename}, пропускаем проверку обновлений"
       continue
     fi
 
-    # 获取本地文件大小
+    # Получаем размер локального файла
     local local_size
     if ! local_size=$(stat -c %s "$local_file" 2>/dev/null); then
-      _info "无法获取 ${filename} 本地大小，尝试重新下载"
+      _info "Не удалось определить размер локального файла ${filename}, пробуем перезагрузить"
       local_size=0
     fi
 
-    # 比较文件大小
+    # Сравниваем размеры файлов
     if [[ "$remote_size" != "$local_size" ]]; then
-      _info "发现脚本依赖 ${filename} 有更新"
-      if wget -q --show-progress -O "$tmp_file" "https://raw.githubusercontent.com/zxcvos/Xray-script/main/${filename}"; then
+      _info "Обнаружено обновление для зависимости ${filename}"
+      if wget -q --show-progress -O "$tmp_file" "https://raw.githubusercontent.com/lyekka/Xray-script/main/${filename}"; then
         mv "$tmp_file" "$local_file"
         updated=true
       else
-        _info "下载 ${filename} 失败，保留原版本"
+        _info "Не удалось загрузить ${filename}, сохраняем текущую версию"
         rm -f "$tmp_file"
       fi
     fi
   done
 
   if $updated; then
-    _info '已自动更新相关依赖'
+    _info 'Зависимости успешно обновлены'
     sleep 2
   fi
 }
-
 function check_xray_script_version() {
   [[ -d /usr/local/xray-script ]] || return
-  local url="https://api.github.com/repos/zxcvos/Xray-script/contents/xhttp.sh"
+  local url="https://api.github.com/repos/lyekka/Xray-script/contents/xhttp.sh"
   local local_size=$(stat -c %s "${CUR_DIR}/${CUR_FILE}")
   local remote_size=$(curl -fsSL "$url" | jq -r '.size')
 
   if [[ "${local_size}" != "${remote_size}" ]]; then
-    _info '发现有新脚本, 是否更新'
-    _input_tips '是否更新 [Y/n] '
+    _info 'Обнаружена новая версия скрипта, обновить?'
+    _input_tips 'Обновить? [Y/n] '
     read -r is_update_script
 
     case "${is_update_script,,}" in
     n)
-      _warn '请及时更新脚本'
+      _warn 'Рекомендуется обновить скрипт как можно скорее'
       sleep 2
       ;;
     *)
-      _info "正在下载新版脚本..."
+      _info "Загружается новая версия скрипта..."
 
-      # 创建临时文件
+      # Создание временного файла
       local tmp_script=$(mktemp)
 
-      # 下载新脚本并检查是否成功
-      if ! wget --no-check-certificate -O "$tmp_script" "https://raw.githubusercontent.com/zxcvos/Xray-script/main/xhttp.sh"; then
+      # Загрузка нового скрипта и проверка успешности
+      if ! wget --no-check-certificate -O "$tmp_script" "https://raw.githubusercontent.com/lyekka/Xray-script/main/xhttp.sh"; then
         rm -rf "${tmp_script}"
-        _warn "新脚本下载失败，请手动更新脚本"
-        _warn "echo 'wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/xhttp.sh && bash ${HOME}/Xray-script.sh'"
+        _warn "Не удалось загрузить новую версию скрипта, обновите вручную"
+        _warn "echo 'wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/lyekka/Xray-script/main/xhttp.sh && bash ${HOME}/Xray-script.sh'"
         exit 1
       fi
 
-      # 替换当前脚本
+      # Замена текущего скрипта
       mv -f "${tmp_script}" "${CUR_DIR}/${CUR_FILE}"
       chmod +x "${CUR_DIR}/${CUR_FILE}"
 
-      _info "脚本已更新，正在重新运行..."
+      _info "Скрипт обновлен, перезапуск..."
 
-      # 重新执行新脚本并传递原始参数
+      # Повторный запуск нового скрипта с оригинальными аргументами
       exec bash "${CUR_DIR}/${CUR_FILE}" "$@"
 
-      # 确保退出当前进程
+      # Завершение текущего процесса
       exit 0
       ;;
     esac
   fi
 }
 
-# 检查 DNS 解析
+# Проверка DNS-разрешения
 function check_dns_resolution() {
   local domain=$1
-  # 获取本机公网 IPv4 与 IPv6
+  # Получение публичных IPv4 и IPv6 текущей машины
   local expected_ipv4="$(curl -fsSL ipv4.icanhazip.com)"
   local expected_ipv6="$(curl -fsSL ipv6.icanhazip.com)"
   local resolved=0
-  # 使用 dig 命令查询域名的 DNS 解析记录
+  # Использование dig для запроса DNS-записей домена
   local actual_ipv4="$(dig +short "${domain}")"
   local actual_ipv6="$(dig +short AAAA "${domain}")"
-  # 检查解析的 IPv4 是否与本机公网 IPv4 一致
+  # Проверка совпадения разрешенного IPv4 с публичным IPv4 машины
   if [[ "${actual_ipv4}" =~ "${expected_ipv4}" ]]; then
     resolved=1
   fi
-  # 检查解析的 IPv6 是否与本机公网 IPv6 一致
+  # Проверка совпадения разрешенного IPv6 с публичным IPv6 машины
   if [[ "${actual_ipv6}" =~ "${expected_ipv6}" ]]; then
     resolved=1
   fi
-  # IPv4 或 IPv6 解析都不成功，则报错误
+  # Если ни IPv4, ни IPv6 не разрешены корректно, вывести предупреждение
   if [[ ${resolved} -eq 0 ]]; then
-    _warn "域名 ${domain} 未解析为本机公网的 IPv4 或 IPv6, 可能无法正常的申请 SSL 证书"
+    _warn "Домен ${domain} не разрешается в публичный IPv4 или IPv6 этой машины, возможны проблемы с получением SSL-сертификата"
   fi
 }
 
@@ -448,19 +447,19 @@ function get_char() {
 }
 
 function check_os() {
-  [[ -z "$(_os)" ]] && _error "Not supported OS"
+  [[ -z "$(_os)" ]] && _error "Операционная система не поддерживается"
   case "$(_os)" in
   ubuntu)
-    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 16 ]] && _error "Not supported OS, please change to Ubuntu 16+ and try again."
+    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 16 ]] && _error "Операционная система не поддерживается, пожалуйста, используйте Ubuntu 16+ и попробуйте снова."
     ;;
   debian)
-    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 9 ]] && _error "Not supported OS, please change to Debian 9+ and try again."
+    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 9 ]] && _error "Операционная система не поддерживается, пожалуйста, используйте Debian 9+ и попробуйте снова."
     ;;
   centos)
-    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 7 ]] && _error "Not supported OS, please change to CentOS 7+ and try again."
+    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 7 ]] && _error "Операционная система не поддерживается, пожалуйста, используйте CentOS 7+ и попробуйте снова."
     ;;
   *)
-    _error "Not supported OS"
+    _error "Операционная система не поддерживается"
     ;;
   esac
 }
@@ -489,7 +488,7 @@ function check_dependencies() {
 }
 
 function install_dependencies() {
-  _info "正在下载相关依赖"
+  _info "Загрузка необходимых зависимостей"
   _install "ca-certificates openssl curl wget git jq tzdata qrencode"
   case "$(_os)" in
   centos)
@@ -505,7 +504,7 @@ function get_random_number() {
   local custom_min=${1}
   local custom_max=${2}
   if ((custom_min > custom_max)); then
-    _error "错误：最小值不能大于最大值。"
+    _error "Ошибка: минимальное значение не может быть больше максимального."
   fi
   local random_number=$(od -vAn -N2 -i /dev/urandom | awk '{print int($1 % ('$custom_max' - '$custom_min') + '$custom_min')}')
   echo $random_number
@@ -529,7 +528,7 @@ function check_xray_version_is_exists() {
   local xray_version_url="https://github.com/XTLS/Xray-core/releases/tag/v${1##*v}"
   local status_code=$(curl -o /dev/null -s -w '%{http_code}\n' "$xray_version_url")
   if [[ "$status_code" = "404" ]]; then
-    _error "无法找到该版本: $1"
+    _error "Не удалось найти указанную версию: $1"
   fi
 }
 
@@ -562,8 +561,8 @@ function change_domain() {
   if [[ ${nginx_status} -eq 1 ]]; then
     read_sni_cdn_domain
     jq --arg target "${reality_domain}" '.target = $target' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
-    _info "target: ${reality_domain}"
-    _info "cdn: ${cdn_domain}"
+    _info "Целевой домен: ${reality_domain}"
+    _info "CDN домен: ${cdn_domain}"
     SERVER_NAMES="$(echo '["'"${reality_domain}"'"]' | jq -r)"
     setup_ssl
   fi
@@ -576,9 +575,9 @@ function show_cloudreve_data() {
   if [[ -z "${cloudreve_version}" ]]; then
     return
   fi
-  echo "Cloudreve 版本: ${cloudreve_version}"
-  echo "Cloudreve 账号: ${cloudreve_username}"
-  echo "Cloudreve 密码: ${cloudreve_password}"
+  echo "Версия Cloudreve: ${cloudreve_version}"
+  echo "Логин Cloudreve: ${cloudreve_username}"
+  echo "Пароль Cloudreve: ${cloudreve_password}"
 }
 
 function reset_cloudreve_data() {
@@ -588,7 +587,7 @@ function reset_cloudreve_data() {
 
 function enable_cron() {
   if ! [[ -f /usr/local/xray-script/update-dat.sh ]]; then
-    wget --no-check-certificate -O /usr/local/xray-script/update-dat.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/tool/update-dat.sh
+    wget --no-check-certificate -O /usr/local/xray-script/update-dat.sh https://raw.githubusercontent.com/lyekka/Xray-script/main/tool/update-dat.sh
     chmod a+x /usr/local/xray-script/update-dat.sh
     (
       crontab -l 2>/dev/null
@@ -605,7 +604,7 @@ function disable_cron() {
   fi
 }
 
-# 添加规则的函数
+# Функция добавления правил
 function add_rule() {
   local CONFIG_FILE='/usr/local/etc/xray/config.json'
   local TMP_FILE='/usr/local/xray-script/tmp.json'
@@ -613,53 +612,53 @@ function add_rule() {
   local domain_or_ip=$2
   local value=$(echo "$3" | tr ',' '\n' | jq -R . | jq -s .)
   local outboundTag=$4
-  local position=$5   # 插入位置参数，可以是 "before" 或 "after"
-  local target_tag=$6 # 目标 ruleTag，指定插入位置的 ruleTag
+  local position=$5   # Параметр позиции вставки: "before" или "after"
+  local target_tag=$6 # Целевой ruleTag для указания позиции вставки
 
-  # 读取原始的 rules 数组
+  # Чтение исходного массива правил
   local current_rules=$(jq '.routing.rules' "$CONFIG_FILE")
 
-  # 检查 ruleTag 是否已经存在
+  # Проверка существования ruleTag
   local existing_rule=$(echo "$current_rules" | jq -r --arg ruleTag "$rule_tag" '.[] | select(.ruleTag == $ruleTag)')
   if [[ "$existing_rule" ]]; then
-    # 如果 ruleTag 已存在，添加到 domain 或 ip 数组
+    # Если ruleTag существует, добавляем в domain или ip массив
     if [[ "$domain_or_ip" == "domain" ]]; then
       jq --arg ruleTag "$rule_tag" --argjson value "$value" '.routing.rules |= map(if .ruleTag == $ruleTag then .domain += $value | .domain |= unique else . end)' "$CONFIG_FILE" >"$TMP_FILE" && mv -f "$TMP_FILE" "$CONFIG_FILE"
     elif [[ "$domain_or_ip" == "ip" ]]; then
       jq --arg ruleTag "$rule_tag" --argjson value "$value" '.routing.rules |= map(if .ruleTag == $ruleTag then .ip += $value | .ip |= unique else . end)' "$CONFIG_FILE" >"$TMP_FILE" && mv -f "$TMP_FILE" "$CONFIG_FILE"
     fi
   else
-    # 如果 ruleTag 不存在，创建新的规则
+    # Если ruleTag не существует, создаем новое правило
     new_rule="[{\"ruleTag\":\"$rule_tag\",\"$domain_or_ip\":$value,\"outboundTag\":\"$outboundTag\"}]"
 
-    # 如果提供了 target_tag 和 position
+    # Если указан target_tag и position
     if [[ -n "$target_tag" ]]; then
-      # 查找目标 ruleTag 是否存在
+      # Проверяем существование целевого ruleTag
       local target_rule=$(echo "$current_rules" | jq -r --arg ruleTag "$target_tag" '.[] | select(.ruleTag == $ruleTag)')
 
       if [[ "$target_rule" ]]; then
-        # 获取目标 ruleTag 的位置
+        # Получаем позицию целевого ruleTag
         local target_index=$(echo "$current_rules" | jq -r --arg ruleTag "$target_tag" 'to_entries | map(select(.value.ruleTag == $ruleTag)) | .[0].key')
         if [[ "$position" == "before" ]]; then
-          # 插入到 target_tag 前
+          # Вставка перед target_tag
           jq --argjson target_index $target_index --argjson new_rule "$new_rule" '.routing.rules |= .[:$target_index] + $new_rule + .[$target_index:]' "$CONFIG_FILE" >"$TMP_FILE" && mv -f "$TMP_FILE" "$CONFIG_FILE"
         elif [[ "$position" == "after" ]]; then
-          # 插入到 target_tag 后
+          # Вставка после target_tag
           jq --argjson target_index $((target_index + 1)) --argjson new_rule "$new_rule" '.routing.rules |= .[:$target_index] + $new_rule + .[$target_index:]' "$CONFIG_FILE" >"$TMP_FILE" && mv -f "$TMP_FILE" "$CONFIG_FILE"
         else
-          # 如果 position 不是 "before" 或 "after"，则追加到末尾
+          # Если position не "before" или "after", добавляем в конец
           jq --argjson new_rule "$new_rule" '.routing.rules += $new_rule' "$CONFIG_FILE" >"$TMP_FILE" && mv -f "$TMP_FILE" "$CONFIG_FILE"
         fi
       else
-        # 如果 target_tag 不存在，则追加到末尾
+        # Если target_tag не существует, добавляем в конец
         jq --argjson new_rule "$new_rule" '.routing.rules += $new_rule' "$CONFIG_FILE" >"$TMP_FILE" && mv -f "$TMP_FILE" "$CONFIG_FILE"
       fi
     else
       if [[ -n "$position" && "$position" -ge 0 ]]; then
-        # 如果提供了插入位置并且位置有效（大于等于0），插入到该位置
+        # Если указана позиция вставки и она валидна (>=0), вставляем на указанную позицию
         jq --argjson position $position --argjson new_rule "$new_rule" '.routing.rules |= .[:$position] + $new_rule + .[$position:]' "$CONFIG_FILE" >"$TMP_FILE" && mv -f "$TMP_FILE" "$CONFIG_FILE"
       else
-        # 如果没有提供位置或位置无效，则追加到末尾
+        # Если позиция не указана или невалидна, добавляем в конец
         jq --argjson new_rule "$new_rule" '.routing.rules += $new_rule' "$CONFIG_FILE" >"$TMP_FILE" && mv -f "$TMP_FILE" "$CONFIG_FILE"
       fi
     fi
@@ -668,36 +667,36 @@ function add_rule() {
 
 function add_rule_warp_ip() {
   if [[ "${WARP}" -eq 1 ]]; then
-    _warn '默认使用该功能的用户知道添加 rule 的相关规则'
-    _info '支持逗号分隔的多个值'
-    _input_tips '请输入分流到 WARP 的 ip: '
+    _warn 'Пользователи по умолчанию понимают правила добавления правил маршрутизации'
+    _info 'Поддерживаются несколько значений, разделенных запятыми'
+    _input_tips 'Введите IP-адреса для маршрутизации через WARP: '
     read -r rule_warp_ip
     if [[ -n "$rule_warp_ip" ]]; then
       add_rule "warp-ip" "ip" "$rule_warp_ip" "warp" "before" "ad-domain"
     fi
   else
-    _error '请开启 WARP Proxy 在进行分流操作'
+    _error 'Включите WARP Proxy перед настройкой маршрутизации'
   fi
 }
 
 function add_rule_warp_domain() {
   if [[ "${WARP}" -eq 1 ]]; then
-    _warn '默认使用该功能的用户知道添加 rule 的相关规则'
-    _info '支持逗号分隔的多个值'
-    _input_tips '请输入分流到 WARP 的 domain: '
+    _warn 'Пользователи по умолчанию понимают правила добавления правил маршрутизации'
+    _info 'Поддерживаются несколько значений, разделенных запятыми'
+    _input_tips 'Введите домены для маршрутизации через WARP: '
     read -r rule_warp_domain
     if [[ -n "$rule_warp_domain" ]]; then
       add_rule "warp-domain" "domain" "$rule_warp_domain" "warp" "before" "ad-domain"
     fi
   else
-    _error '请开启 WARP Proxy 在进行分流操作'
+    _error 'Включите WARP Proxy перед настройкой маршрутизации'
   fi
 }
 
 function add_rule_block_ip() {
-  _warn '默认使用该功能的用户知道添加 rule 的相关规则'
-  _info '支持逗号分隔的多个值'
-  _input_tips '请输入需要屏蔽 ip: '
+  _warn 'Пользователи по умолчанию понимают правила добавления правил маршрутизации'
+  _info 'Поддерживаются несколько значений, разделенных запятыми'
+  _input_tips 'Введите IP-адреса для блокировки: '
   read -r rule_block_ip
   if [[ -n "$rule_block_ip" ]]; then
     add_rule "block-ip" "ip" "$rule_block_ip" "block" "after" "private-ip"
@@ -705,9 +704,9 @@ function add_rule_block_ip() {
 }
 
 function add_rule_block_domain() {
-  _warn '默认使用该功能的用户知道添加 rule 的相关规则'
-  _info '支持逗号分隔的多个值'
-  _input_tips '请输入需要屏蔽 domain: '
+  _warn 'Пользователи по умолчанию понимают правила добавления правил маршрутизации'
+  _info 'Поддерживаются несколько значений, разделенных запятыми'
+  _input_tips 'Введите домены для блокировки: '
   read -r rule_domain_domain
   if [[ -n "$rule_domain_domain" ]]; then
     add_rule "block-domain" "domain" "$rule_domain_domain" "block" "after" "private-ip"
@@ -742,7 +741,7 @@ function read_block_bt() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     is_block_bt='Y'
   else
-    _input_tips '是否开启 bittorrent 屏蔽 [y/N] '
+    _input_tips 'Блокировать bittorrent трафик? [y/N] '
     read -r is_block_bt
   fi
 }
@@ -751,7 +750,7 @@ function read_block_cn_ip() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     is_block_cn_ip='Y'
   else
-    _input_tips '是否开启国内 ip 屏蔽 [y/N] '
+    _input_tips 'Блокировать китайские IP-адреса? [y/N] '
     read -r is_block_cn_ip
   fi
 }
@@ -760,7 +759,7 @@ function read_block_ads() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     is_block_ads='Y'
   else
-    _input_tips '是否开启广告屏蔽 [y/N] '
+    _input_tips 'Блокировать рекламу? [y/N] '
     read -r is_block_ads
   fi
 }
@@ -769,7 +768,7 @@ function read_update_geodata() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     is_update_geodata='Y'
   else
-    _input_tips '是否开启 geodata 自动更新功能 [y/N] '
+    _input_tips 'Включить автоматическое обновление geodata? [y/N] '
     read -r is_update_geodata
   fi
 }
@@ -778,8 +777,8 @@ function read_port() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     return
   fi
-  _info '端口范围是 1-65535 之间的数字, 如果不在范围内, 则使用默认生成'
-  _input_tips '请输入自定义 port (默认自动生成): '
+  _info 'Диапазон портов: число от 1 до 65535. Если введенное значение вне диапазона, будет использовано значение по умолчанию'
+  _input_tips 'Введите пользовательский порт (по умолчанию генерируется автоматически): '
   read -r in_port
 }
 
@@ -787,8 +786,8 @@ function read_uuid() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     return
   fi
-  _info '自定义输入的 uuid ，如果不是标准格式，将会使用 xray uuid -i "自定义字符串" 进行 UUIDv5 映射后填入配置'
-  _input_tips '请输入自定义 UUID (默认自动生成): '
+  _info 'Пользовательский UUID. Если формат не соответствует стандарту, будет использовано преобразование UUIDv5 через xray uuid -i "ваша_строка"'
+  _input_tips 'Введите пользовательский UUID (по умолчанию генерируется автоматически): '
   read -r in_uuid
 }
 
@@ -796,7 +795,7 @@ function read_seed() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     return
   fi
-  _input_tips '请输入自定义 seed (默认自动生成): '
+  _input_tips 'Введите пользовательский seed (по умолчанию генерируется автоматически): '
   read -r in_seed
 }
 
@@ -804,7 +803,7 @@ function read_password() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     return
   fi
-  _input_tips '请输入自定义 password (默认自动生成): '
+  _input_tips 'Введите пользовательский пароль (по умолчанию генерируется автоматически): '
   read -r in_password
 }
 
@@ -812,22 +811,22 @@ function read_domain() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     return
   fi
-  _info "如果输入的自定义域名在 serverNames.json 存在对应的 key , 则代表使用该数据"
+  _info "Если введенный домен существует в serverNames.json как ключ, будут использованы соответствующие данные"
   until [[ ${is_domain} =~ ^[Yy]$ ]]; do
-    _input_tips '请输入自定义域名 (默认自动生成): '
+    _input_tips 'Введите пользовательский домен (по умолчанию генерируется автоматически): '
     read -r in_domain
     if [[ -z "${in_domain}" ]]; then
       break
     fi
     check_domain=$(echo ${in_domain} | grep -oE '[^/]+(\.[^/]+)+\b' | head -n 1)
     if ! _is_network_reachable "${check_domain}"; then
-      _warn "\"${check_domain}\" 无法连接"
+      _warn "\"${check_domain}\" недоступен"
       continue
     fi
     if ! _is_tls1_3_h2 "${check_domain}"; then
-      _warn "\"${check_domain}\" 不支持 TLSv1.3 或 h2 ，亦或者 Client Hello 不是 X25519"
-      _info "如果你明确知道 \"${check_domain}\" 支持 TLSv1.3(h2), X25519, 可能是识别错误, 可选择直接跳过检查"
-      _input_tips '是否明确确认支持 [y/N] '
+      _warn "\"${check_domain}\" не поддерживает TLSv1.3 или h2, либо Client Hello не X25519"
+      _info "Если вы уверены, что \"${check_domain}\" поддерживает TLSv1.3(h2) и X25519, возможна ошибка определения"
+      _input_tips 'Подтвердить поддержку [y/N] '
       read -r is_support
       if [[ ${is_support} =~ ^[Yy]$ ]]; then
         break
@@ -841,11 +840,11 @@ function read_domain() {
 }
 
 function read_sni_cdn_domain() {
-  _input_tips '请输入域名(REALITY): '
+  _input_tips 'Введите домен (REALITY): '
   read -r reality_domain
   check_dns_resolution ${reality_domain}
-  _info '如果 CDN 域名为空，则默认与 REALITY 使用同一域名'
-  _input_tips '请输入域名(CDN): '
+  _info 'Если домен CDN не указан, по умолчанию будет использован тот же домен, что и для REALITY'
+  _input_tips 'Введите домен (CDN): '
   read -r cdn_domain
   if [[ -z ${cdn_domain} ]]; then
     cdn_domain=${reality_domain}
@@ -855,8 +854,8 @@ function read_sni_cdn_domain() {
 }
 
 function read_zero_ssl_account_email() {
-  _info '该邮箱用于注册 ZeroSSL ，如果不输入则默认使用 acme.sh 示例中的 my@example.com'
-  _input_tips '请输入邮箱: '
+  _info 'Этот email используется для регистрации в ZeroSSL. Если не указан, будет использован пример из acme.sh: my@example.com'
+  _input_tips 'Введите email: '
   read -r account_email
 }
 
@@ -864,10 +863,10 @@ function read_short_ids() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     return
   fi
-  _info 'shortId 内容为 0 到 f, 长度为 2 的倍数，长度上限为 16'
-  _info '如果输入值为 0 到 8, 则自动生成对 0-16 长度的 shortId'
-  _info '支持逗号分隔的多个值'
-  _input_tips '请输入自定义 shortId (默认自动生成): '
+  _info 'shortId: символы от 0 до f, длина кратна 2, максимальная длина - 16'
+  _info 'Если ввести число от 0 до 8, будет сгенерирован shortId длиной от 0 до 16'
+  _info 'Поддерживаются несколько значений, разделенных запятыми'
+  _input_tips 'Введите пользовательский shortId (по умолчанию генерируется автоматически): '
   read -r in_short_id
 }
 
@@ -875,7 +874,7 @@ function read_path() {
   if [[ ${IS_AUTO} =~ ^[Yy]$ ]]; then
     return
   fi
-  _input_tips '请输入自定义 path (默认自动生成): '
+  _input_tips 'Введите пользовательский path (по умолчанию генерируется автоматически): '
   read -r in_path
 }
 
@@ -960,7 +959,7 @@ function generate_short_id() {
   elif validate_hex_input "$trimmed_input"; then
     echo "$trimmed_input"
   else
-    _error "'$trimmed_input' 不是有效的输入。"
+    _error "'$trimmed_input' недопустимый ввод."
   fi
 }
 
@@ -991,7 +990,7 @@ function generate_path() {
 }
 
 function get_xray_config_data() {
-  # 判断是否重置配置
+  # Проверка необходимости сброса конфигурации
   if [[ "${STATUS}" -ne 1 ]]; then
     read_block_bt
     read_block_cn_ip
@@ -999,7 +998,7 @@ function get_xray_config_data() {
     read_update_geodata
   fi
 
-  # 判断之前配置是否为 sni
+  # Проверка предыдущей конфигурации sni
   local nginx_status=$(jq -r '.sni.status' /usr/local/xray-script/config.json)
   if [[ ${nginx_status} -eq 1 && 'sni' != ${XTLS_CONFIG} ]]; then
     stop_renew_ssl
@@ -1012,9 +1011,9 @@ function get_xray_config_data() {
     jq '.sni.cdn = ""' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
   fi
 
-  # 端口设置
+  # Настройка порта
   if [[ 'sni' == ${XTLS_CONFIG} ]]; then
-    _info 'SNI 配置端口不支持修改，默认为 443'
+    _info 'Порт для конфигурации SNI нельзя изменить, по умолчанию 443'
     XRAY_PORT=443
   else
     read_port
@@ -1022,7 +1021,7 @@ function get_xray_config_data() {
   fi
   _info "port: ${XRAY_PORT}"
 
-  # 设置域名相关配置
+  # Настройки домена
   case ${XTLS_CONFIG} in
   xhttp | vision | trojan | fallback)
     read_domain
@@ -1042,14 +1041,14 @@ function get_xray_config_data() {
     ;;
   esac
 
-  # 所有配置通用设置
+  # Общие настройки для всех конфигураций
   jq --argjson port "${XRAY_PORT}" '.port = $port' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
   read_uuid
   XRAY_UUID="$(generate_uuid "${in_uuid}")"
   _info "UUID: ${XRAY_UUID}"
   jq --arg uuid "${XRAY_UUID}" '.uuid = $uuid' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
 
-  # 根据配置设置加密信息
+  # Настройки шифрования в зависимости от конфигурации
   case ${XTLS_CONFIG} in
   mkcp)
     read_seed
@@ -1064,14 +1063,14 @@ function get_xray_config_data() {
     jq --arg trojan "${TROJAN_PASSWORD}" '.trojan = $trojan' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
     ;;
   fallback)
-    _info "设置 fallback UUID"
+    _info "Настройка fallback UUID"
     read_uuid
     FALLBACK_UUID="$(generate_uuid "${in_uuid}")"
     _info "fallback UUID: ${FALLBACK_UUID}"
     jq --arg uuid "${FALLBACK_UUID}" '.fallback = $uuid' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
     ;;
   sni)
-    _info "设置 sni UUID"
+    _info "Настройка sni UUID"
     read_uuid
     SNI_UUID="$(generate_uuid "${in_uuid}")"
     _info "sni UUID: ${SNI_UUID}"
@@ -1079,7 +1078,7 @@ function get_xray_config_data() {
     ;;
   esac
 
-  # 设置 XHTTP 的 path
+  # Настройка path для XHTTP
   case ${XTLS_CONFIG} in
   xhttp | trojan | fallback | sni)
     read_path
@@ -1089,7 +1088,7 @@ function get_xray_config_data() {
     ;;
   esac
 
-  # 设置 REALITY 相关配置
+  # Настройки REALITY
   case ${XTLS_CONFIG} in
   xhttp | vision | trojan | fallback | sni)
     generate_xray_x25519
@@ -1104,7 +1103,7 @@ function get_xray_config_data() {
 }
 
 function get_xtls_download_url() {
-  local url="https://api.github.com/repos/zxcvos/Xray-script/contents/XTLS"
+  local url="https://api.github.com/repos/lyekka/Xray-script/contents/XTLS"
   DOWNLOAD_URL=$(curl -fsSL "$url" | jq -r --arg target "${XTLS_CONFIG}" '.[] | select((.name | ascii_downcase | sub("\\.json$"; "")) == $target) | .download_url')
 }
 
@@ -1115,21 +1114,21 @@ function set_mkcp_data() {
 }
 
 function get_mkcp_data() {
-  # -- protocol --
+  # -- протокол --
   local protocol=$(jq -r '.inbounds[1].protocol' /usr/local/etc/xray/config.json)
-  # -- uuid --
+  # -- UUID --
   local uuid=$(jq -r '.inbounds[1].settings.clients[0].id' /usr/local/etc/xray/config.json)
-  # -- remote_host --
+  # -- удаленный хост --
   local remote_host=$(curl -fsSL ipv4.icanhazip.com)
-  # -- port --
+  # -- порт --
   local port=$(jq -r '.inbounds[1].port' /usr/local/etc/xray/config.json)
-  # -- type --
+  # -- тип --
   local type=$(jq -r '.inbounds[1].streamSettings.network' /usr/local/etc/xray/config.json)
-  # -- seed --
+  # -- сид --
   local seed=$(jq -r '.inbounds[1].streamSettings.kcpSettings.seed' /usr/local/etc/xray/config.json)
-  # -- tag --
+  # -- тег --
   local tag=$(jq -r '.tag' /usr/local/xray-script/config.json)
-  # -- SHARE_LINK --
+  # -- ССЫЛКА ДЛЯ ПОДКЛЮЧЕНИЯ --
   SHARE_LINK="${protocol}://${uuid}@${remote_host}:${port}?type=${type}&seed=${seed}#${tag}"
 }
 
@@ -1143,33 +1142,33 @@ function set_vision_data() {
 }
 
 function get_vision_data() {
-  # -- protocol --
+  # -- протокол --
   local protocol=$(jq -r '.inbounds[1].protocol' /usr/local/etc/xray/config.json)
-  # -- uuid --
+  # -- UUID --
   local uuid=$(jq -r '.inbounds[1].settings.clients[0].id' /usr/local/etc/xray/config.json)
-  # -- remote_host --
+  # -- удаленный хост --
   local remote_host=$(curl -fsSL ipv4.icanhazip.com)
-  # -- port --
+  # -- порт --
   local port=$(jq -r '.inbounds[1].port' /usr/local/etc/xray/config.json)
-  # -- type --
+  # -- тип --
   local type=$(jq -r '.inbounds[1].streamSettings.network' /usr/local/etc/xray/config.json)
-  # -- flow --
+  # -- поток --
   local flow=$(jq -r '.inbounds[1].settings.clients[0].flow' /usr/local/etc/xray/config.json)
-  # -- security --
+  # -- безопасность --
   local security=$(jq -r '.inbounds[1].streamSettings.security' /usr/local/etc/xray/config.json)
-  # -- serverName --
+  # -- имя сервера --
   local server_names_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.serverNames | length' /usr/local/etc/xray/config.json)
   local server_names_random=$(get_random_number 0 ${server_names_length})
   local server_name=$(jq '.inbounds[1].streamSettings.realitySettings.serverNames | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${server_names_random} '.[$i]')
-  # -- public_key --
+  # -- публичный ключ --
   local public_key=$(jq -r '.publicKey' /usr/local/xray-script/config.json)
-  # -- shortId --
+  # -- короткий ID --
   local short_ids_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.shortIds | length' /usr/local/etc/xray/config.json)
   local short_ids_random=$(get_random_number 0 ${short_ids_length})
   local short_id=$(jq '.inbounds[1].streamSettings.realitySettings.shortIds | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${short_ids_random} '.[$i]')
-  # -- tag --
+  # -- тег --
   local tag=$(jq -r '.tag' /usr/local/xray-script/config.json)
-  # -- SHARE_LINK --
+  # -- ССЫЛКА ДЛЯ ПОДКЛЮЧЕНИЯ --
   SHARE_LINK="${protocol}://${uuid}@${remote_host}:${port}?type=${type}&flow=${flow}&security=${security}&sni=${server_name}&pbk=${public_key}&sid=${short_id}&spx=%2F&fp=chrome#${tag}"
 }
 
@@ -1184,33 +1183,33 @@ function set_xhttp_data() {
 }
 
 function get_xhttp_data() {
-  # -- protocol --
+  # -- протокол --
   local protocol=$(jq -r '.inbounds[1].protocol' /usr/local/etc/xray/config.json)
-  # -- uuid --
+  # -- UUID --
   local uuid=$(jq -r '.inbounds[1].settings.clients[0].id' /usr/local/etc/xray/config.json)
-  # -- remote_host --
+  # -- удаленный хост --
   local remote_host=$(curl -fsSL ipv4.icanhazip.com)
-  # -- port --
+  # -- порт --
   local port=$(jq -r '.inbounds[1].port' /usr/local/etc/xray/config.json)
-  # -- type --
+  # -- тип --
   local type=$(jq -r '.inbounds[1].streamSettings.network' /usr/local/etc/xray/config.json)
-  # -- security --
+  # -- безопасность --
   local security=$(jq -r '.inbounds[1].streamSettings.security' /usr/local/etc/xray/config.json)
-  # -- serverName --
+  # -- имя сервера --
   local server_names_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.serverNames | length' /usr/local/etc/xray/config.json)
   local server_names_random=$(get_random_number 0 ${server_names_length})
   local server_name=$(jq '.inbounds[1].streamSettings.realitySettings.serverNames | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${server_names_random} '.[$i]')
-  # -- public_key --
+  # -- публичный ключ --
   local public_key=$(jq -r '.publicKey' /usr/local/xray-script/config.json)
-  # -- shortId --
+  # -- короткий ID --
   local short_ids_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.shortIds | length' /usr/local/etc/xray/config.json)
   local short_ids_random=$(get_random_number 0 ${short_ids_length})
   local short_id=$(jq '.inbounds[1].streamSettings.realitySettings.shortIds | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${short_ids_random} '.[$i]')
-  # -- path --
+  # -- путь --
   local path=$(jq -r '.inbounds[1].streamSettings.xhttpSettings.path' /usr/local/etc/xray/config.json)
-  # -- tag --
+  # -- тег --
   local tag=$(jq -r '.tag' /usr/local/xray-script/config.json)
-  # -- SHARE_LINK --
+  # -- ССЫЛКА ДЛЯ ПОДКЛЮЧЕНИЯ --
   SHARE_LINK="${protocol}://${uuid}@${remote_host}:${port}?type=${type}&security=${security}&sni=${server_name}&pbk=${public_key}&sid=${short_id}&path=%2F${path#/}&spx=%2F&fp=chrome#${tag}"
 }
 
@@ -1225,33 +1224,33 @@ function set_trojan_data() {
 }
 
 function get_trojan_data() {
-  # -- protocol --
+  # -- протокол --
   local protocol=$(jq -r '.inbounds[1].protocol' /usr/local/etc/xray/config.json)
-  # -- password --
+  # -- пароль --
   local password=$(jq -r '.inbounds[1].settings.clients[0].password' /usr/local/etc/xray/config.json)
-  # -- remote_host --
+  # -- удаленный хост --
   local remote_host=$(curl -fsSL ipv4.icanhazip.com)
-  # -- port --
+  # -- порт --
   local port=$(jq -r '.inbounds[1].port' /usr/local/etc/xray/config.json)
-  # -- type --
+  # -- тип --
   local type=$(jq -r '.inbounds[1].streamSettings.network' /usr/local/etc/xray/config.json)
-  # -- security --
+  # -- безопасность --
   local security=$(jq -r '.inbounds[1].streamSettings.security' /usr/local/etc/xray/config.json)
-  # -- serverName --
+  # -- имя сервера --
   local server_names_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.serverNames | length' /usr/local/etc/xray/config.json)
   local server_names_random=$(get_random_number 0 ${server_names_length})
   local server_name=$(jq '.inbounds[1].streamSettings.realitySettings.serverNames | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${server_names_random} '.[$i]')
-  # -- public_key --
+  # -- публичный ключ --
   local public_key=$(jq -r '.publicKey' /usr/local/xray-script/config.json)
-  # -- shortId --
+  # -- короткий ID --
   local short_ids_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.shortIds | length' /usr/local/etc/xray/config.json)
   local short_ids_random=$(get_random_number 0 ${short_ids_length})
   local short_id=$(jq '.inbounds[1].streamSettings.realitySettings.shortIds | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${short_ids_random} '.[$i]')
-  # -- path --
+  # -- путь --
   local path=$(jq -r '.inbounds[1].streamSettings.xhttpSettings.path' /usr/local/etc/xray/config.json)
-  # -- tag --
+  # -- тег --
   local tag=$(jq -r '.tag' /usr/local/xray-script/config.json)
-  # -- SHARE_LINK --
+  # -- ССЫЛКА ДЛЯ ПОДКЛЮЧЕНИЯ --
   SHARE_LINK="${protocol}://${password}@${remote_host}:${port}?type=${type}&security=${security}&sni=${server_name}&pbk=${public_key}&sid=${short_id}&path=%2F${path#/}&spx=%2F&fp=chrome#${tag}"
 }
 
@@ -1267,33 +1266,33 @@ function set_fallback_data() {
 }
 
 function get_fallback_xhttp_data() {
-  # -- protocol --
+  # -- протокол --
   local protocol=$(jq -r '.inbounds[2].protocol' /usr/local/etc/xray/config.json)
-  # -- uuid --
+  # -- UUID --
   local uuid=$(jq -r '.inbounds[2].settings.clients[0].id' /usr/local/etc/xray/config.json)
-  # -- remote_host --
+  # -- удаленный хост --
   local remote_host=$(curl -fsSL ipv4.icanhazip.com)
-  # -- port --
+  # -- порт --
   local port=$(jq -r '.inbounds[1].port' /usr/local/etc/xray/config.json)
-  # -- type --
+  # -- тип --
   local type=$(jq -r '.inbounds[2].streamSettings.network' /usr/local/etc/xray/config.json)
-  # -- security --
+  # -- безопасность --
   local security=$(jq -r '.inbounds[1].streamSettings.security' /usr/local/etc/xray/config.json)
-  # -- serverName --
+  # -- имя сервера --
   local server_names_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.serverNames | length' /usr/local/etc/xray/config.json)
   local server_names_random=$(get_random_number 0 ${server_names_length})
   local server_name=$(jq '.inbounds[1].streamSettings.realitySettings.serverNames | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${server_names_random} '.[$i]')
-  # -- public_key --
+  # -- публичный ключ --
   local public_key=$(jq -r '.publicKey' /usr/local/xray-script/config.json)
-  # -- shortId --
+  # -- короткий ID --
   local short_ids_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.shortIds | length' /usr/local/etc/xray/config.json)
   local short_ids_random=$(get_random_number 0 ${short_ids_length})
   local short_id=$(jq '.inbounds[1].streamSettings.realitySettings.shortIds | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${short_ids_random} '.[$i]')
-  # -- path --
+  # -- путь --
   local path=$(jq -r '.inbounds[2].streamSettings.xhttpSettings.path' /usr/local/etc/xray/config.json)
-  # -- tag --
+  # -- тег --
   local tag='fallback_xhttp'
-  # -- SHARE_LINK --
+  # -- ССЫЛКА ДЛЯ ПОДКЛЮЧЕНИЯ --
   SHARE_LINK="${protocol}://${uuid}@${remote_host}:${port}?type=${type}&security=${security}&sni=${server_name}&pbk=${public_key}&sid=${short_id}&path=%2F${path#/}&spx=%2F&fp=chrome#${tag}"
 }
 
@@ -1310,41 +1309,41 @@ function get_sni_data() {
   local sni_type="$1"
   local sni_security="$2"
   local extra="$3"
-  # -- protocol --
+  # -- протокол --
   local protocol=$(jq -r '.inbounds[1].protocol' /usr/local/etc/xray/config.json)
-  # -- uuid --
+  # -- UUID --
   local uuid=$(jq -r '.inbounds[1].settings.clients[0].id' /usr/local/etc/xray/config.json)
   [[ 'xhttp' == "${sni_type}" ]] && uuid=$(jq -r '.inbounds[2].settings.clients[0].id' /usr/local/etc/xray/config.json)
-  # -- remote_host --
+  # -- удаленный хост --
   local remote_host=$(curl -fsSL ipv4.icanhazip.com)
-  # -- port --
+  # -- порт --
   local port=$(jq -r '.port' /usr/local/xray-script/config.json)
-  # -- type --
+  # -- тип --
   local type=$(jq -r '.inbounds[1].streamSettings.network' /usr/local/etc/xray/config.json)
   [[ 'xhttp' == "${sni_type}" ]] && type=$(jq -r '.inbounds[2].streamSettings.network' /usr/local/etc/xray/config.json)
-  # -- flow --
+  # -- поток --
   local flow=$(jq -r '.inbounds[1].settings.clients[0].flow' /usr/local/etc/xray/config.json)
-  # -- security --
+  # -- безопасность --
   local security=$(jq -r '.inbounds[1].streamSettings.security' /usr/local/etc/xray/config.json)
   [[ 'cdn' == "${sni_security}" ]] && security='tls'
-  # -- serverName --
+  # -- имя сервера --
   local server_names_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.serverNames | length' /usr/local/etc/xray/config.json)
   local server_names_random=$(get_random_number 0 ${server_names_length})
   local server_name=$(jq '.inbounds[1].streamSettings.realitySettings.serverNames | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${server_names_random} '.[$i]')
   [[ 'cdn' == "${sni_security}" ]] && server_name=$(jq -r '.sni.cdn' /usr/local/xray-script/config.json)
-  # -- public_key --
+  # -- публичный ключ --
   local public_key=$(jq -r '.publicKey' /usr/local/xray-script/config.json)
-  # -- shortId --
+  # -- короткий ID --
   local short_ids_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.shortIds | length' /usr/local/etc/xray/config.json)
   local short_ids_random=$(get_random_number 0 ${short_ids_length})
   local short_id=$(jq '.inbounds[1].streamSettings.realitySettings.shortIds | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${short_ids_random} '.[$i]')
-  # -- path --
+  # -- путь --
   local path=$(jq -r '.inbounds[2].streamSettings.xhttpSettings.path' /usr/local/etc/xray/config.json)
-  # -- tag --
+  # -- тег --
   local tag='vision_reality'
   [[ 'xhttp' == "${sni_type}" ]] && tag='xhttp_reality'
   [[ 'cdn' == "${sni_security}" ]] && tag='xhttp_cdn'
-  # -- SHARE_LINK --
+  # -- ССЫЛКА ДЛЯ ПОДКЛЮЧЕНИЯ --
   SHARE_LINK="${protocol}://${uuid}@${remote_host}:${port}?type=${type}&flow=${flow}&security=${security}&sni=${server_name}&pbk=${public_key}&sid=${short_id}&spx=%2F&fp=chrome#${tag}"
   [[ 'xhttp' == "${sni_type}" ]] && SHARE_LINK="${protocol}://${uuid}@${remote_host}:${port}?type=${type}&security=${security}&sni=${server_name}&pbk=${public_key}&sid=${short_id}&path=%2F${path#/}&spx=%2F&fp=chrome#${tag}"
   [[ 'cdn' == "${sni_security}" ]] && SHARE_LINK="${protocol}://${uuid}@${remote_host}:${port}?type=${type}&security=${security}&sni=${server_name}&host=${server_name}&alpn=h2&pbk=${public_key}&path=%2F${path#/}&spx=%2F&fp=chrome#${tag}"
@@ -1386,9 +1385,9 @@ EOF
   )
   if [[ 'cdn' == "${sni_security}" ]]; then
     server_name=$(jq -r '.sni.domain' /usr/local/xray-script/config.json)
-    # -- public_key --
+    # -- публичный ключ --
     local public_key=$(jq -r '.publicKey' /usr/local/xray-script/config.json)
-    # -- shortId --
+    # -- короткий ID --
     local short_ids_length=$(jq -r '.inbounds[1].streamSettings.realitySettings.shortIds | length' /usr/local/etc/xray/config.json)
     local short_ids_random=$(get_random_number 0 ${short_ids_length})
     local short_id=$(jq '.inbounds[1].streamSettings.realitySettings.shortIds | .[]' /usr/local/etc/xray/config.json | shuf | jq -s -r --argjson i ${short_ids_random} '.[$i]')
@@ -1480,42 +1479,42 @@ function setup_nginx_config_data() {
     mkdir -vp /usr/local/nginx/conf/sites-available
     mkdir -vp /usr/local/nginx/conf/sites-enabled
     mkdir -vp /var/log/nginx
-    download_github_files '/usr/local/nginx/conf' 'https://api.github.com/repos/zxcvos/Xray-script/contents/nginx/conf'
+    download_github_files '/usr/local/nginx/conf' 'https://api.github.com/repos/lyekka/Xray-script/contents/nginx/conf'
     rm -rf /usr/local/nginx/conf/limit.conf
   }
 }
 
 function stop_renew_ssl() {
-  # 获取旧数据
+  # Остановка обновления SSL сертификатов для старых доменов
   local old_domain=$(jq -r '.sni.old.domain' /usr/local/xray-script/config.json)
   local old_cdn=$(jq -r '.sni.old.cdn' /usr/local/xray-script/config.json)
 
-  # 停止旧 REALITY 域名续订并清理配置
+  # Остановка продления старого REALITY-домена и очистка конфигурации
   if [[ -n "${old_domain}" ]]; then
-    _info "处理旧 REALITY 域名: ${old_domain}"
+    _info "Обработка старого REALITY домена: ${old_domain}"
 
     if [[ -d "/usr/local/nginx/conf/certs/${old_domain}" ]]; then
-      _warn "停止 ${old_domain} 的 SSL 证书续订..."
+      _warn "Остановка обновления SSL сертификата для ${old_domain}..."
       if bash /usr/local/xray-script/ssl.sh -s -d "${old_domain}"; then
-        _info "SSL 证书续订停止成功."
+        _info "Обновление SSL сертификата успешно остановлено."
       else
-        _error "停止 SSL 证书续订失败."
+        _error "Не удалось остановить обновление SSL сертификата."
       fi
       rm -rf /usr/local/nginx/conf/sites-{available,enabled}/${old_domain}.conf
       jq '.sni.old.domain = ""' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
     fi
   fi
 
-  # 停止旧 CDN 域名续订并清理配置
+  # Остановка продления старого CDN-домена и очистка конфигурации
   if [[ -n "${old_cdn}" && "${old_cdn}" != "${old_domain}" ]]; then
-    _info "处理旧 CDN 域名: ${old_cdn}"
+    _info "Обработка старого CDN домена: ${old_cdn}"
 
     if [[ -d "/usr/local/nginx/conf/certs/${old_cdn}" ]]; then
-      _warn "停止 ${old_cdn} 的 SSL 证书续订..."
+      _warn "Остановка обновления SSL сертификата для ${old_cdn}..."
       if bash /usr/local/xray-script/ssl.sh -s -d "${old_cdn}"; then
-        _info "SSL 证书续订停止成功."
+        _info "Обновление SSL сертификата успешно остановлено."
       else
-        _error "停止 SSL 证书续订失败."
+        _error "Не удалось остановить обновление SSL сертификата."
       fi
       rm -rf /usr/local/nginx/conf/sites-{available,enabled}/${old_cdn}.conf
       jq '.sni.old.cdn = ""' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
@@ -1527,17 +1526,17 @@ function stop_renew_ssl() {
 
 function setup_ssl() {
   stop_renew_ssl
-  # 设置新域名对应的 nginx 配置文件
-  wget --no-check-certificate -O /usr/local/nginx/conf/modules-enabled/stream.conf https://raw.githubusercontent.com/zxcvos/Xray-script/main/nginx/conf/modules-enabled/stream.conf
+  # Настройка конфига nginx для нового домена
+  wget --no-check-certificate -O /usr/local/nginx/conf/modules-enabled/stream.conf https://raw.githubusercontent.com/lyekka/Xray-script/main/nginx/conf/modules-enabled/stream.conf
   sed -i "s| example.com| ${reality_domain}|g" /usr/local/nginx/conf/modules-enabled/stream.conf
   sed -i "s|# cdn.example.com|# ${cdn_domain}|g" /usr/local/nginx/conf/modules-enabled/stream.conf
 
-  wget --no-check-certificate -O /usr/local/nginx/conf/sites-available/${reality_domain}.conf https://raw.githubusercontent.com/zxcvos/Xray-script/main/nginx/conf/sites-available/example.com.conf
+  wget --no-check-certificate -O /usr/local/nginx/conf/sites-available/${reality_domain}.conf https://raw.githubusercontent.com/lyekka/Xray-script/main/nginx/conf/sites-available/example.com.conf
   sed -i "s|example.com|${reality_domain}|g" /usr/local/nginx/conf/sites-available/${reality_domain}.conf
   sed -i "s|/yourpath|${XHTTP_PATH}|g" /usr/local/nginx/conf/sites-available/${reality_domain}.conf
 
   [[ ${reality_domain} == ${cdn_domain} ]] || {
-    wget --no-check-certificate -O /usr/local/nginx/conf/sites-available/${cdn_domain}.conf https://raw.githubusercontent.com/zxcvos/Xray-script/main/nginx/conf/sites-available/example.com.conf
+    wget --no-check-certificate -O /usr/local/nginx/conf/sites-available/${cdn_domain}.conf https://raw.githubusercontent.com/lyekka/Xray-script/main/nginx/conf/sites-available/example.com.conf
     sed -i '/# h3/,/# h2/{/# h2/!d;}' /usr/local/nginx/conf/sites-available/${cdn_domain}.conf
     sed -i 's|cloudreve.sock|cdn_xhttp.sock|' /usr/local/nginx/conf/sites-available/${cdn_domain}.conf
     sed -i "s|example.com|${cdn_domain}|g" /usr/local/nginx/conf/sites-available/${cdn_domain}.conf
@@ -1550,21 +1549,21 @@ function setup_ssl() {
     sed -i '/^[[:space:]]*location \/[[:space:]]*{/,/^[[:space:]]*#[[:space:]]*add/ { s/^/#/; }' /usr/local/nginx/conf/sites-available/${cdn_domain}.conf
   }
 
-  # 为新域名申请 SSL 证书
-  bash /usr/local/xray-script/ssl.sh -i -d ${reality_domain} || _error '退出安装流程'
+  # Запрос SSL-сертификата для нового домена
+  bash /usr/local/xray-script/ssl.sh -i -d ${reality_domain} || _error 'Прерывание установки'
   [[ ${reality_domain} == ${cdn_domain} ]] || {
-    bash /usr/local/xray-script/ssl.sh -i -d ${cdn_domain} || _error '退出安装流程'
+    bash /usr/local/xray-script/ssl.sh -i -d ${cdn_domain} || _error 'Прерывание установки'
     ln -sf /usr/local/nginx/conf/sites-available/${cdn_domain}.conf /usr/local/nginx/conf/sites-enabled/${cdn_domain}.conf
   }
   ln -sf /usr/local/nginx/conf/sites-available/${reality_domain}.conf /usr/local/nginx/conf/sites-enabled/${reality_domain}.conf
 
-  _info "完成 SSL 证书申请，并重启 Nginx"
+  _info "SSL-сертификат успешно получен, перезапуск Nginx"
   _systemctl restart nginx
 
-  # 更新 config 中 sni.old 信息
+  # Обновление информации sni.old в конфиге
   jq --arg target "${reality_domain}" '.sni.old.domain = $target' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
   jq --arg target "${cdn_domain}" '.sni.old.cdn = $target' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
-  # 更新 config 中 sni 信息
+  # Обновление информации sni в конфиге
   jq --arg target "${reality_domain}" '.sni.domain = $target' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
   jq --arg target "${cdn_domain}" '.sni.cdn = $target' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
   jq '.sni.status = 1' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
@@ -1599,13 +1598,13 @@ function restart_xray() {
 function view_xray_config() {
   local remote_host=$(curl -fsSL ipv4.icanhazip.com)
   local port=$(jq -r '.port' /usr/local/xray-script/config.json)
-  _warn '请确保使用端口以开放'
-  _info "验证端口开放链接: https://tcp.ping.pe/${remote_host}:${port}"
-  _info "根据已有配置文件, 随机获取 serverName 和 shortId 自动生成分享链接与二维码"
-  _info "分享链接基于 【VMessAEAD / VLESS 分享链接标准提案】与 【v2rayN/NG 分享服务器】实现，如果其他客户端无法正常使用，请自行根据分享链接进行修改。"
-  _info "上下行分离二维码太大，不予显示。"
+  _warn 'Убедитесь, что порт открыт'
+  _info "Ссылка для проверки открытого порта: https://tcp.ping.pe/${remote_host}:${port}"
+  _info "На основе существующего конфига автоматически генерируются ссылки для обмена и QR-коды с рандомными serverName и shortId"
+  _info "Ссылки основаны на 【Предложении по стандарту VMessAEAD/VLESS】 и 【v2rayN/NG обмене серверами】. Если другие клиенты не работают, измените параметры вручную."
+  _info "QR-коды для разделения uplink/downlink слишком большие и не отображаются."
   echo
-  echo '按任意键继续......或按 Ctrl+C 取消'
+  echo 'Нажмите любую клавишу для продолжения... или Ctrl+C для отмены'
   local char=$(get_char)
   echo
   XTLS_CONFIG=$(jq -r '.tag' /usr/local/xray-script/config.json)
@@ -1617,55 +1616,55 @@ function view_xray_config() {
   fallback)
     # vision
     get_vision_data
-    _info "XTLS(Vision)+Reality 直连"
-    _info "分享链接: ${SHARE_LINK}"
+    _info "XTLS(Vision)+Reality прямое подключение"
+    _info "Ссылка для обмена: ${SHARE_LINK}"
     echo ${SHARE_LINK} | qrencode -t ansiutf8
     echo
     # xhttp
     get_fallback_xhttp_data
-    _info "xhttp+Reality 直连"
+    _info "xhttp+Reality прямое подключение"
     ;;
   sni)
     # vision
     get_sni_data
-    _info "XTLS(Vision)+Reality 直连"
-    _info "分享链接: ${SHARE_LINK}"
+    _info "XTLS(Vision)+Reality прямое подключение"
+    _info "Ссылка для обмена: ${SHARE_LINK}"
     echo ${SHARE_LINK} | qrencode -t ansiutf8
     echo
     # xhttp
     get_sni_data 'xhttp'
-    _info "xhttp+Reality 直连"
-    _info "分享链接: ${SHARE_LINK}"
+    _info "xhttp+Reality прямое подключение"
+    _info "Ссылка для обмена: ${SHARE_LINK}"
     echo ${SHARE_LINK} | qrencode -t ansiutf8
     echo
     # reality up cdn down
     get_sni_data 'xhttp' 'reality' 'extra'
-    _info "上行 xhttp+Reality | 下行 xhttp+TLS+CDN"
-    _info "分享链接: ${SHARE_LINK}"
+    _info "Uplink xhttp+Reality | Downlink xhttp+TLS+CDN"
+    _info "Ссылка для обмена: ${SHARE_LINK}"
     echo
     # cdn up reality down
     get_sni_data 'xhttp' 'cdn' 'extra'
-    _info "上行 xhttp+TLS+CDN | 下行 xhttp+Reality"
-    _info "分享链接: ${SHARE_LINK}"
+    _info "Uplink xhttp+TLS+CDN | Downlink xhttp+Reality"
+    _info "Ссылка для обмена: ${SHARE_LINK}"
     echo
     # cdn
     get_sni_data 'xhttp' 'cdn'
-    _info "xhttp+TLS 过 CDN"
+    _info "xhttp+TLS через CDN"
     ;;
   esac
-  _info "分享链接: ${SHARE_LINK}"
+  _info "Ссылка для обмена: ${SHARE_LINK}"
   echo ${SHARE_LINK} | qrencode -t ansiutf8
   echo
 }
 
 function view_xray_traffic() {
-  [[ -f /usr/local/xray-script/traffic.sh ]] || wget --no-check-certificate -O /usr/local/xray-script/traffic.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/tool/traffic.sh
+  [[ -f /usr/local/xray-script/traffic.sh ]] || wget --no-check-certificate -O /usr/local/xray-script/traffic.sh https://raw.githubusercontent.com/lyekka/Xray-script/main/tool/traffic.sh
   bash /usr/local/xray-script/traffic.sh
 }
 
-# 安装流程
+# Процесс установки
 function installation_processes() {
-  _input_tips '请选择操作: '
+  _input_tips 'Выберите действие: '
   read -r choose
   case ${choose} in
   2) IS_AUTO='N' ;;
@@ -1673,14 +1672,14 @@ function installation_processes() {
   esac
 }
 
-# 装载管理
+# Управление установкой Xray
 function xray_installation_processes() {
-  _input_tips '请选择操作: '
+  _input_tips 'Выберите действие: '
   read -r choose
   case ${choose} in
   1) INSTALL_OPTION="--version $(curl -fsSL https://api.github.com/repos/XTLS/Xray-core/releases | jq -r '.[0].tag_name')" ;;
   3)
-    _input_tips '自选版本(e.g. v1.0.0): '
+    _input_tips 'Введите версию (например v1.0.0): '
     read -r specified_version
     check_xray_version_is_exists "${specified_version}"
     SPECIFIED_VERSION="${specified_version}"
@@ -1697,15 +1696,15 @@ function xray_installation_processes() {
   esac
 }
 
-# 管理配置
+# Управление конфигурацией
 function config_processes() {
-  _input_tips '请选择操作: '
+  _input_tips 'Выберите действие: '
   read -r choose
   case ${choose} in
   1)
     UPDATE_CONFIG='Y'
     if [[ "${STATUS}" -eq 1 ]]; then
-      _input_tips '是否使用全新的配置 [y/N] '
+      _input_tips 'Использовать новую конфигурацию? [y/N] '
       read -r is_new_config
       if [[ ${is_new_config} =~ ^[Yy]$ ]]; then
         STATUS=0
@@ -1729,18 +1728,18 @@ function config_processes() {
   esac
 }
 
-# SNI配置
+# Настройка SNI
 function sni_config_processes() {
-  _input_tips '请选择操作: '
+  _input_tips 'Выберите действие: '
   read -r choose
   case ${choose} in
   2) SNI_CONFIG='cloudreve' ;;
   esac
 }
 
-# 更新配置
+# Обновление конфигурации Xray
 function xray_config_processes() {
-  _input_tips '请选择操作: '
+  _input_tips 'Выберите действие: '
   read -r choose
   case ${choose} in
   1) XTLS_CONFIG='mkcp' ;;
@@ -1753,16 +1752,18 @@ function xray_config_processes() {
     ;;
   *) XTLS_CONFIG='xhttp' ;;
   esac
+  
   jq --arg tag "${XTLS_CONFIG}" '.tag = $tag' /usr/local/xray-script/config.json >/usr/local/xray-script/tmp.json && mv -f /usr/local/xray-script/tmp.json /usr/local/xray-script/config.json
+  
   if [[ "${STATUS}" -eq 1 ]]; then
     rm -rf /usr/local/xray-script/routing.json
     jq -r '.routing' /usr/local/etc/xray/config.json >/usr/local/xray-script/routing.json
   fi
 }
 
-# 入口界面处理
+# Обработка главного меню
 function main_processes() {
-  _input_tips '请选择操作: '
+  _input_tips 'Выберите действие: '
   read -r choose
 
   [[ ${choose} -eq 0 ]] && exit 0
@@ -1773,11 +1774,11 @@ function main_processes() {
 
   if ! [[ -d /usr/local/xray-script ]]; then
     mkdir -p /usr/local/xray-script
-    wget --no-check-certificate -O /usr/local/xray-script/nginx.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/nginx.sh
-    wget --no-check-certificate -O /usr/local/xray-script/ssl.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/ssl.sh
-    wget --no-check-certificate -q -O /usr/local/xray-script/docker.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/docker.sh
-    wget --no-check-certificate -q -O /usr/local/xray-script/config.json https://raw.githubusercontent.com/zxcvos/Xray-script/refs/heads/main/XTLS/config.json
-    wget --no-check-certificate -q -O /usr/local/xray-script/serverNames.json https://raw.githubusercontent.com/zxcvos/Xray-script/refs/heads/main/XTLS/serverNames.json
+    wget --no-check-certificate -O /usr/local/xray-script/nginx.sh https://raw.githubusercontent.com/lyekka/Xray-script/main/nginx.sh
+    wget --no-check-certificate -O /usr/local/xray-script/ssl.sh https://raw.githubusercontent.com/lyekka/Xray-script/main/ssl.sh
+    wget --no-check-certificate -q -O /usr/local/xray-script/docker.sh https://raw.githubusercontent.com/lyekka/Xray-script/main/docker.sh
+    wget --no-check-certificate -q -O /usr/local/xray-script/config.json https://raw.githubusercontent.com/lyekka/Xray-script/refs/heads/main/XTLS/config.json
+    wget --no-check-certificate -q -O /usr/local/xray-script/serverNames.json https://raw.githubusercontent.com/lyekka/Xray-script/refs/heads/main/XTLS/serverNames.json
   fi
   STATUS=$(jq -r '.status' /usr/local/xray-script/config.json)
   WARP=$(jq -r '.warp' /usr/local/xray-script/config.json)
@@ -1798,18 +1799,18 @@ function main_processes() {
     install_xray
     ;;
   3)
-    # 停止定期任务
+    # Остановка регулярных задач
     disable_cron
     disable_nginx_cron
-    # 关闭 WARP 与 Cloudreve 服务
+    # Отключение WARP и службы Cloudreve
     disable_warp
     bash /usr/local/xray-script/docker.sh --purge-cloudreve
-    # 停止续订证书，并卸载 acme.sh
+    # Прекращение обновления сертификатов и удаление acme.sh
     stop_renew_ssl
     bash /usr/local/xray-script/ssl.sh -p
-    # 卸载 nginx
+    # Удаление nginx
     bash /usr/local/xray-script/nginx.sh -p
-    # 卸载 xray
+    # Удаление xray
     purge_xray
     ;;
   4) start_xray ;;
@@ -1832,15 +1833,15 @@ function main_processes() {
 
 function print_banner() {
   case $(($(get_random_number 0 100) % 2)) in
-  0) echo "IBtbMDsxOzM1Ozk1bV8bWzA7MTszMTs5MW1fG1swbSAgIBtbMDsxOzMyOzkybV9fG1swbSAgG1swOzE7MzQ7OTRtXxtbMG0gICAgG1swOzE7MzE7OTFtXxtbMG0gICAbWzA7MTszMjs5Mm1fG1swOzE7MzY7OTZtX18bWzA7MTszNDs5NG1fXxtbMDsxOzM1Ozk1bV9fG1swbSAgIBtbMDsxOzMzOzkzbV8bWzA7MTszMjs5Mm1fXxtbMDsxOzM2Ozk2bV9fG1swOzE7MzQ7OTRtX18bWzBtICAgG1swOzE7MzE7OTFtXxtbMDsxOzMzOzkzbV9fG1swOzE7MzI7OTJtX18bWzBtICAKIBtbMDsxOzMxOzkxbVwbWzBtIBtbMDsxOzMzOzkzbVwbWzBtIBtbMDsxOzMyOzkybS8bWzBtIBtbMDsxOzM2Ozk2bS8bWzBtIBtbMDsxOzM0Ozk0bXwbWzBtIBtbMDsxOzM1Ozk1bXwbWzBtICAbWzA7MTszMzs5M218G1swbSAbWzA7MTszMjs5Mm18G1swbSAbWzA7MTszNjs5Nm18XxtbMDsxOzM0Ozk0bV8bWzBtICAgG1swOzE7MzE7OTFtX18bWzA7MTszMzs5M218G1swbSAbWzA7MTszMjs5Mm18XxtbMDsxOzM2Ozk2bV8bWzBtICAgG1swOzE7MzU7OTVtX18bWzA7MTszMTs5MW18G1swbSAbWzA7MTszMzs5M218G1swbSAgG1swOzE7MzI7OTJtXxtbMDsxOzM2Ozk2bV8bWzBtIBtbMDsxOzM0Ozk0bVwbWzBtIAogIBtbMDsxOzMyOzkybVwbWzBtIBtbMDsxOzM2Ozk2bVYbWzBtIBtbMDsxOzM0Ozk0bS8bWzBtICAbWzA7MTszNTs5NW18G1swbSAbWzA7MTszMTs5MW18G1swOzE7MzM7OTNtX18bWzA7MTszMjs5Mm18G1swbSAbWzA7MTszNjs5Nm18G1swbSAgICAbWzA7MTszNTs5NW18G1swbSAbWzA7MTszMTs5MW18G1swbSAgICAgICAbWzA7MTszNDs5NG18G1swbSAbWzA7MTszNTs5NW18G1swbSAgICAbWzA7MTszMjs5Mm18G1swbSAbWzA7MTszNjs5Nm18XxtbMDsxOzM0Ozk0bV8pG1swbSAbWzA7MTszNTs5NW18G1swbQogICAbWzA7MTszNjs5Nm0+G1swbSAbWzA7MTszNDs5NG08G1swbSAgIBtbMDsxOzMxOzkxbXwbWzBtICAbWzA7MTszMjs5Mm1fXxtbMG0gIBtbMDsxOzM0Ozk0bXwbWzBtICAgIBtbMDsxOzMxOzkxbXwbWzBtIBtbMDsxOzMzOzkzbXwbWzBtICAgICAgIBtbMDsxOzM1Ozk1bXwbWzBtIBtbMDsxOzMxOzkxbXwbWzBtICAgIBtbMDsxOzM2Ozk2bXwbWzBtICAbWzA7MTszNDs5NG1fG1swOzE7MzU7OTVtX18bWzA7MTszMTs5MW0vG1swbSAKICAbWzA7MTszNDs5NG0vG1swbSAbWzA7MTszNTs5NW0uG1swbSAbWzA7MTszMTs5MW1cG1swbSAgG1swOzE7MzM7OTNtfBtbMG0gG1swOzE7MzI7OTJtfBtbMG0gIBtbMDsxOzM0Ozk0bXwbWzBtIBtbMDsxOzM1Ozk1bXwbWzBtICAgIBtbMDsxOzMzOzkzbXwbWzBtIBtbMDsxOzMyOzkybXwbWzBtICAgICAgIBtbMDsxOzMxOzkxbXwbWzBtIBtbMDsxOzMzOzkzbXwbWzBtICAgIBtbMDsxOzM0Ozk0bXwbWzBtIBtbMDsxOzM1Ozk1bXwbWzBtICAgICAKIBtbMDsxOzM0Ozk0bS8bWzA7MTszNTs5NW1fLxtbMG0gG1swOzE7MzE7OTFtXBtbMDsxOzMzOzkzbV9cG1swbSAbWzA7MTszMjs5Mm18G1swOzE7MzY7OTZtX3wbWzBtICAbWzA7MTszNTs5NW18XxtbMDsxOzMxOzkxbXwbWzBtICAgIBtbMDsxOzMyOzkybXwbWzA7MTszNjs5Nm1ffBtbMG0gICAgICAgG1swOzE7MzM7OTNtfBtbMDsxOzMyOzkybV98G1swbSAgICAbWzA7MTszNTs5NW18XxtbMDsxOzMxOzkxbXwbWzBtICAgICAKCkNvcHlyaWdodCAoQykgenhjdm9zIHwgaHR0cHM6Ly9naXRodWIuY29tL3p4Y3Zvcy9YcmF5LXNjcmlwdAoK" | base64 --decode ;;
+  0) echo "IBtbMDsxOzM1Ozk1bV8bWzA7MTszMTs5MW1fG1swbSAgIBtbMDsxOzMyOzkybV9fG1swbSAgG1swOzE7MzQ7OTRtXxtbMG0gICAgG1swOzE7MzE7OTFtXxtbMG0gICAbWzA7MTszMjs5Mm1fG1swOzE7MzY7OTZtX18bWzA7MTszNDs5NG1fXxtbMDsxOzM1Ozk1bV9fG1swbSAgIBtbMDsxOzMzOzkzbV8bWzA7MTszMjs5Mm1fXxtbMDsxOzM2Ozk2bV9fG1swOzE7MzQ7OTRtX18bWzBtICAgG1swOzE7MzE7OTFtX18bWzA7MTszMzs5M218G1swbSAbWzA7MTszMjs5Mm18XxtbMDsxOzM2Ozk2bV8bWzBtICAgG1swOzE7MzU7OTVtX18bWzA7MTszMTs5MW18G1swbSAbWzA7MTszMzs5M218G1swbSAgG1swOzE7MzI7OTJtXxtbMDsxOzM2Ozk2bV8bWzBtIBtbMDsxOzM0Ozk0bVwbWzBtIAogIBtbMDsxOzMyOzkybVwbWzBtIBtbMDsxOzM2Ozk2bVYbWzBtIBtbMDsxOzM0Ozk0bS8bWzBtICAbWzA7MTszNTs5NW18G1swbSAbWzA7MTszMTs5MW18G1swOzE7MzM7OTNtX18bWzA7MTszMjs5Mm18G1swbSAbWzA7MTszNjs5Nm18G1swbSAgICAbWzA7MTszNTs5NW18G1swbSAbWzA7MTszMTs5MW18G1swbSAgICAgICAbWzA7MTszNDs5NG18G1swbSAbWzA7MTszNTs5NW18G1swbSAgICAbWzA7MTszMjs5Mm18G1swbSAbWzA7MTszNjs5Nm18XxtbMDsxOzM0Ozk0bV8pG1swbSAbWzA7MTszNTs5NW18G1swbQogICAbWzA7MTszNjs5Nm0+G1swbSAbWzA7MTszNDs5NG08G1swbSAgIBtbMDsxOzMxOzkxbXwbWzBtICAbWzA7MTszMjs5Mm1fXxtbMG0gIBtbMDsxOzM0Ozk0bXwbWzBtICAgIBtbMDsxOzMxOzkxbXwbWzBtIBtbMDsxOzMzOzkzbXwbWzBtICAgICAgIBtbMDsxOzM1Ozk1bXwbWzBtIBtbMDsxOzMxOzkxbXwbWzBtICAgIBtbMDsxOzM2Ozk2bXwbWzBtICAbWzA7MTszNDs5NG1fG1swOzE7MzU7OTVtX18bWzA7MTszMTs5MW0vG1swbSAKICAbWzA7MTszNDs5NG0vG1swbSAbWzA7MTszNTs5NW0uG1swbSAbWzA7MTszMTs5MW1cG1swbSAgG1swOzE7MzM7OTNtfBtbMG0gG1swOzE7MzI7OTJtfBtbMG0gIBtbMDsxOzM0Ozk0bXwbWzBtIBtbMDsxOzM1Ozk1bXwbWzBtICAgIBtbMDsxOzMzOzkzbXwbWzBtIBtbMDsxOzMyOzkybXwbWzBtICAgICAgIBtbMDsxOzMxOzkxbXwbWzBtIBtbMDsxOzMzOzkzbXwbWzBtICAgIBtbMDsxOzM0Ozk0bXwbWzBtIBtbMDsxOzM1Ozk1bXwbWzBtICAgICAKIBtbMDsxOzM0Ozk0bS8bWzA7MTszNTs5NW1fLxtbMG0gG1swOzE7MzE7OTFtXBtbMDsxOzMzOzkzbV9cG1swbSAbWzA7MTszMjs5Mm18G1swOzE7MzY7OTZtX3wbWzBtICAbWzA7MTszNTs5NW18XxtbMDsxOzMxOzkxbXwbWzBtICAgIBtbMDsxOzMyOzkybXwbWzA7MTszNjs5Nm1ffBtbMG0gICAgICAgG1swOzE7MzM7OTNtfBtbMDsxOzMyOzkybV98G1swbSAgICAbWzA7MTszNTs5NW18XxtbMDsxOzMxOzkxbXwbWzBtICAgICAKCkNvcHlyaWdodCAoQykgenhjdm9zIHwgaHR0cHM6Ly9naXRodWIuY29tL3p4Y3Zvcy9YcmF5LXNjcmlwdAoK" | base64 --decode ;;
   1) echo "IBtbMDsxOzM0Ozk0bV9fG1swbSAgIBtbMDsxOzM0Ozk0bV9fG1swbSAgG1swOzE7MzQ7OTRtXxtbMG0gICAgG1swOzE7MzQ7OTRtXxtbMG0gICAbWzA7MzRtX19fX19fXxtbMG0gICAbWzA7MzRtX19fG1swOzM3bV9fX18bWzBtICAgG1swOzM3bV9fX19fG1swbSAgCiAbWzA7MTszNDs5NG1cG1swbSAbWzA7MTszNDs5NG1cG1swbSAbWzA7MTszNDs5NG0vG1swbSAbWzA7MTszNDs5NG0vG1swbSAbWzA7MzRtfBtbMG0gG1swOzM0bXwbWzBtICAbWzA7MzRtfBtbMG0gG1swOzM0bXwbWzBtIBtbMDszNG18X18bWzBtICAgG1swOzM3bV9ffBtbMG0gG1swOzM3bXxfXxtbMG0gICAbWzA7MzdtX198G1swbSAbWzA7MzdtfBtbMG0gIBtbMDsxOzMwOzkwbV9fG1swbSAbWzA7MTszMDs5MG1cG1swbSAKICAbWzA7MzRtXBtbMG0gG1swOzM0bVYbWzBtIBtbMDszNG0vG1swbSAgG1swOzM0bXwbWzBtIBtbMDszNG18X198G1swbSAbWzA7MzdtfBtbMG0gICAgG1swOzM3bXwbWzBtIBtbMDszN218G1swbSAgICAgICAbWzA7MzdtfBtbMG0gG1swOzE7MzA7OTBtfBtbMG0gICAgG1swOzE7MzA7OTBtfBtbMG0gG1swOzE7MzA7OTBtfF9fKRtbMG0gG1swOzE7MzA7OTBtfBtbMG0KICAgG1swOzM0bT4bWzBtIBtbMDszNG08G1swbSAgIBtbMDszN218G1swbSAgG1swOzM3bV9fG1swbSAgG1swOzM3bXwbWzBtICAgIBtbMDszN218G1swbSAbWzA7MzdtfBtbMG0gICAgICAgG1swOzE7MzA7OTBtfBtbMG0gG1swOzE7MzA7OTBtfBtbMG0gICAgG1swOzE7MzA7OTBtfBtbMG0gIBtbMDsxOzM0Ozk0bV9fXy8bWzBtIAogIBtbMDszN20vG1swbSAbWzA7MzdtLhtbMG0gG1swOzM3bVwbWzBtICAbWzA7MzdtfBtbMG0gG1swOzM3bXwbWzBtICAbWzA7MzdtfBtbMG0gG1swOzE7MzA7OTBtfBtbMG0gICAgG1swOzE7MzA7OTBtfBtbMG0gG1swOzE7MzA7OTBtfBtbMG0gICAgICAgG1swOzE7MzA7OTBtfBtbMG0gG1swOzE7MzQ7OTRtfBtbMG0gICAgG1swOzE7MzQ7OTRtfBtbMG0gG1swOzE7MzQ7OTRtfBtbMG0gICAgIAogG1swOzM3bS9fLxtbMG0gG1swOzM3bVxfXBtbMG0gG1swOzE7MzA7OTBtfF98G1swbSAgG1swOzE7MzA7OTBtfF98G1swbSAgICAbWzA7MTszMDs5MG18X3wbWzBtICAgICAgIBtbMDsxOzM0Ozk0bXxffBtbMG0gICAgG1swOzE7MzQ7OTRtfF8bWzA7MzRtfBtbMG0gICAgIAoKQ29weXJpZ2h0IChDKSB6eGN2b3MgfCBodHRwczovL2dpdGh1Yi5jb20venhjdm9zL1hyYXktc2NyaXB0Cgo=" | base64 --decode ;;
   esac
 }
 
 function print_script_status() {
-  local xray_version="${RED}未安装${NC}"
-  local script_xray_config="${RED}未配置${NC}"
-  local warp_status="${RED}未启动${NC}"
+  local xray_version="${RED}Не установлен${NC}"
+  local script_xray_config="${RED}Не настроен${NC}"
+  local warp_status="${RED}Не запущен${NC}"
   if _exists "xray"; then
     xray_version="${GREEN}v$(xray version | awk '$1=="Xray" {print $2}')${NC}"
     if _exists "jq" && [[ -d /usr/local/xray-script ]]; then
@@ -1852,7 +1853,7 @@ function print_script_status() {
     fi
   fi
   if _exists "docker" && docker ps | grep -q xray-script-warp; then
-    warp_status="${GREEN}已启动${NC}"
+    warp_status="${GREEN}Запущен${NC}"
   fi
   echo -e "-------------------------------------------"
   echo -e "Xray       : ${xray_version}"
@@ -1864,95 +1865,95 @@ function print_script_status() {
 
 function installation_management() {
   clear
-  echo -e "----------------- 安装流程 ----------------"
-  echo -e "${GREEN}1.${NC} 全自动(${GREEN}默认${NC})"
-  echo -e "${GREEN}2.${NC} 自定义"
+  echo -e "----------------- Процесс установки ----------------"
+  echo -e "${GREEN}1.${NC} Полностью автоматический (${GREEN}по умолчанию${NC})"
+  echo -e "${GREEN}2.${NC} Пользовательский"
   echo -e "-------------------------------------------"
-  echo -e "1.稳定版, XHTTP, 屏蔽 bt, cn, 广告, 开启 geodata 自动更新"
-  echo -e "2.自选版本,自选配置"
+  echo -e "1.Стабильная версия, XHTTP, блокировка bt, cn, рекламы, автообновление geodata"
+  echo -e "2.Выбор версии и конфигурации вручную"
   echo -e "-------------------------------------------"
   installation_processes
 }
 
 function xray_installation_management() {
   clear
-  echo -e "----------------- 装载管理 ----------------"
-  echo -e "${GREEN}1.${NC} 最新本"
-  echo -e "${GREEN}2.${NC} 稳定本(${GREEN}默认${NC})"
-  echo -e "${GREEN}3.${NC} 自选版"
-  echo -e "${GREEN}4.${NC} 更新 nginx"
+  echo -e "----------------- Управление установкой ----------------"
+  echo -e "${GREEN}1.${NC} Последняя версия"
+  echo -e "${GREEN}2.${NC} Стабильная версия (${GREEN}по умолчанию${NC})"
+  echo -e "${GREEN}3.${NC} Выбор версии вручную"
+  echo -e "${GREEN}4.${NC} Обновить nginx"
   echo -e "-------------------------------------------"
-  echo -e "1.最新版包含了 ${YELLOW}pre-release${NC} 版本"
-  echo -e "2.稳定版为最新发布的${YELLOW}非 pre-release${NC} 版本"
-  echo -e "3.自选版可能存在${RED}配置不兼容${NC}问题，请自行解决"
-  echo -e "4.更新 nginx 选项，${RED}仅限 SNI 配置使用${NC}"
+  echo -e "1.Последняя версия включает ${YELLOW}pre-release${NC} сборки"
+  echo -e "2.Стабильная версия - последняя ${YELLOW}не pre-release${NC} сборка"
+  echo -e "3.Ручной выбор версии может вызвать ${RED}проблемы совместимости${NC}"
+  echo -e "4.Обновление nginx ${RED}доступно только для SNI конфигурации${NC}"
   echo -e "-------------------------------------------"
   xray_installation_processes
 }
 
 function config_management() {
   clear
-  echo -e "----------------- 管理配置 ----------------"
-  echo -e "${GREEN} 1.${NC} 更新配置"
-  echo -e "${GREEN} 2.${NC} 开启 WARP Proxy"
-  echo -e "${GREEN} 3.${NC} 关闭 WARP Proxy"
-  echo -e "${GREEN} 4.${NC} 开启 nginx 自动更新"
-  echo -e "${GREEN} 5.${NC} 关闭 nginx 自动更新"
-  echo -e "${GREEN} 6.${NC} 开启 geodata 自动更新"
-  echo -e "${GREEN} 7.${NC} 关闭 geodata 自动更新"
-  echo -e "${GREEN} 8.${NC} 添加 WARP ip 分流"
-  echo -e "${GREEN} 9.${NC} 添加 WARP domain 分流"
-  echo -e "${GREEN}10.${NC} 添加屏蔽 ip 分流"
-  echo -e "${GREEN}11.${NC} 添加屏蔽 domain 分流"
-  echo -e "${GREEN}12.${NC} 修改域名"
-  echo -e "${GREEN}13.${NC} 重置 Cloudreve 管理员数据"
+  echo -e "----------------- Управление конфигурацией ----------------"
+  echo -e "${GREEN} 1.${NC} Обновить конфигурацию"
+  echo -e "${GREEN} 2.${NC} Включить WARP Proxy"
+  echo -e "${GREEN} 3.${NC} Выключить WARP Proxy"
+  echo -e "${GREEN} 4.${NC} Включить автообновление nginx"
+  echo -e "${GREEN} 5.${NC} Выключить автообновление nginx"
+  echo -e "${GREEN} 6.${NC} Включить автообновление geodata"
+  echo -e "${GREEN} 7.${NC} Выключить автообновление geodata"
+  echo -e "${GREEN} 8.${NC} Добавить маршрутизацию по IP для WARP"
+  echo -e "${GREEN} 9.${NC} Добавить маршрутизацию по доменам для WARP"
+  echo -e "${GREEN}10.${NC} Добавить блокировку по IP"
+  echo -e "${GREEN}11.${NC} Добавить блокировку по доменам"
+  echo -e "${GREEN}12.${NC} Изменить доменное имя"
+  echo -e "${GREEN}13.${NC} Сбросить данные администратора Cloudreve"
   echo -e "-------------------------------------------"
-  echo -e "1.更新配置功能为整个配置的更新, 如果想要单独修改自行修改配置文件"
-  echo -e "2-3.WARP Proxy 功能通过 Docker 部署, 开启时自动安装 Docker"
-  echo -e "2-3.WARP Proxy 详情 https://github.com/haoel/haoel.github.io?tab=readme-ov-file#1043-docker-%E4%BB%A3%E7%90%86"
-  echo -e "2-3.每次成功开启 WARP Proxy 都会重新申请 WARP 账号, ${RED}频繁操作可能导致 IP 被 Cloud­flare 拉黑${NC}"
-  echo -e "4-5.开启/关闭 nginx 自动更新，${RED}仅限 SNI 配置使用${NC}"
-  echo -e "6-7.geodata 由 https://github.com/Loyalsoldier/v2ray-rules-dat 提供"
-  echo -e "8.(${RED}需要开启 WARP${NC})添加关于 ip 的 WARP 分流, 相关分流添加在 ruleTag 为 warp-ip 中"
-  echo -e "9.(${RED}需要开启 WARP${NC})添加关于 domain 的 WARP 分流, 相关分流添加在 ruleTag 为 warp-domain 中"
-  echo -e "10.添加关于 ip 的屏蔽分流, 相关分流添加在 ruleTag 为 block-ip 中"
-  echo -e "11.添加关于 domain 的屏蔽分流, 相关分流添加在 ruleTag 为 block-domain 中"
-  echo -e "12.修改通过 SNI 分流的域名，${RED}仅限 SNI 配置使用${NC}"
-  echo -e "13.重置 Cloudreve 数据库，${RED}仅限 SNI 配置使用${NC}"
+  echo -e "1.Обновление всей конфигурации. Для частичных изменений редактируйте файлы вручную"
+  echo -e "2-3.WARP Proxy развертывается через Docker, при включении Docker будет установлен автоматически"
+  echo -e "2-3.Подробнее о WARP Proxy: https://github.com/haoel/haoel.github.io?tab=readme-ov-file#1043-docker-%E4%BB%A3%E7%90%86"
+  echo -e "2-3.При каждом включении WARP Proxy создается новый аккаунт, ${RED}частая смена может привести к блокировке IP Cloudflare${NC}"
+  echo -e "4-5.Включение/выключение автообновления nginx, ${RED}только для SNI конфигурации${NC}"
+  echo -e "6-7.Geodata предоставляется https://github.com/Loyalsoldier/v2ray-rules-dat"
+  echo -e "8.(${RED}требуется включенный WARP${NC})Добавляет маршрутизацию IP через WARP в ruleTag warp-ip"
+  echo -e "9.(${RED}требуется включенный WARP${NC})Добавляет маршрутизацию доменов через WARP в ruleTag warp-domain"
+  echo -e "10.Добавляет блокировку IP в ruleTag block-ip"
+  echo -e "11.Добавляет блокировку доменов в ruleTag block-domain"
+  echo -e "12.Изменение домена для SNI маршрутизации, ${RED}только для SNI конфигурации${NC}"
+  echo -e "13.Сброс базы данных Cloudreve, ${RED}только для SNI конфигурации${NC}"
   echo -e "-------------------------------------------"
   config_processes
 }
 
 function sni_config_management() {
   clear
-  echo -e "----------------- SNI 配置 ----------------"
-  echo -e "${GREEN}1.${NC} 使用 Nginx 默认页面(${GREEN}默认${NC})"
-  echo -e "${GREEN}2.${NC} 使用 Cloudreve"
+  echo -e "----------------- Настройка SNI ----------------"
+  echo -e "${GREEN}1.${NC} Использовать стандартную страницу Nginx (${GREEN}по умолчанию${NC})"
+  echo -e "${GREEN}2.${NC} Использовать Cloudreve"
   echo -e "-------------------------------------------"
-  echo -e "1.不配置伪装站，使用默认页面"
-  echo -e "2.使用个人网盘服务进行伪装"
+  echo -e "1.Не настраивать маскировочный сайт, использовать стандартную страницу"
+  echo -e "2.Использовать персональное облачное хранилище для маскировки"
   echo -e "-------------------------------------------"
   sni_config_processes
 }
 
 function xray_config_management() {
   clear
-  echo -e "----------------- 更新配置 ----------------"
+  echo -e "----------------- Обновление конфигурации ----------------"
   echo -e "${GREEN}1.${NC} VLESS+mKCP+seed"
   echo -e "${GREEN}2.${NC} VLESS+Vision+REALITY"
-  echo -e "${GREEN}3.${NC} VLESS+XHTTP+REALITY(${GREEN}默认${NC})"
+  echo -e "${GREEN}3.${NC} VLESS+XHTTP+REALITY(${GREEN}по умолчанию${NC})"
   echo -e "${GREEN}4.${NC} Trojan+XHTTP+REALITY"
   echo -e "${GREEN}5.${NC} VLESS+Vision+REALITY+VLESS+XHTTP+REALITY"
   echo -e "${GREEN}6.${NC} SNI+VLESS+Vision+REALITY+VLESS+XHTTP+REALITY"
   echo -e "-------------------------------------------"
-  echo -e "1.mKCP ${YELLOW}牺牲带宽${NC}来${GREEN}降低延迟${NC}。传输同样的内容，${RED}mKCP 一般比 TCP 消耗更多的流量${NC}"
-  echo -e "2.XTLS(Vision) ${GREEN}解决 TLS in TLS 问题${NC}"
-  echo -e "3.XHTTP ${GREEN}全场景通吃${NC}的时代正式到来(详情: https://github.com/XTLS/Xray-core/discussions/4113)"
-  echo -e "3.1.XHTTP 默认有多路复用，${GREEN}延迟比 Vision 低${NC}但${YELLOW}多线程测速不如它${NC}"
-  echo -e "3.2.${RED}此外 v2rayN&G 客户端有全局 mux.cool 设置，用 XHTTP 前记得关闭，不然连不上新版 Xray 服务端${NC}"
-  echo -e "4.VLESS 替换为 Trojan"
-  echo -e "5.利用 VLESS+Vision+REALITY 回落 VLESS+XHTTP ${GREEN}共用 443 端口${NC}"
-  echo -e "6.通过 Nginx 的 SNI 分流${GREEN}共用 443 端口${NC}，实现 REALITY 直连与过 CDN 共存"
+  echo -e "1.mKCP ${YELLOW}жертвует пропускной способностью${NC} для ${GREEN}снижения задержки${NC}. При передаче одинакового объема данных ${RED}mKCP обычно потребляет больше трафика, чем TCP${NC}"
+  echo -e "2.XTLS(Vision) ${GREEN}решает проблему TLS в TLS${NC}"
+  echo -e "3.XHTTP ${GREEN}универсальное решение${NC} для всех сценариев (подробнее: https://github.com/XTLS/Xray-core/discussions/4113)"
+  echo -e "3.1.XHTTP по умолчанию поддерживает мультиплексирование, ${GREEN}имеет меньшую задержку, чем Vision${NC}, но ${YELLOW}уступает в скорости при многопоточном тестировании${NC}"
+  echo -e "3.2.${RED}Клиенты v2rayN&G имеют глобальную настройку mux.cool - перед использованием XHTTP отключите ее, иначе не получится подключиться к новому серверу Xray${NC}"
+  echo -e "4.Замена VLESS на Trojan"
+  echo -e "5.Использование VLESS+Vision+REALITY с переходом на VLESS+XHTTP ${GREEN}с общим портом 443${NC}"
+  echo -e "6.SNI-разделение трафика через Nginx для ${GREEN}совместного использования порта 443${NC}, позволяющее одновременно использовать прямое подключение REALITY и подключение через CDN"
   echo -e "-------------------------------------------"
   xray_config_processes
 }
@@ -1965,25 +1966,25 @@ function main() {
   print_banner
   print_script_status
   echo -e "--------------- Xray-script ---------------"
-  echo -e " Version      : ${GREEN}v2024-12-31${NC}"
-  echo -e " Description  : Xray 管理脚本"
-  echo -e "----------------- 装载管理 ----------------"
-  echo -e "${GREEN}1.${NC} 完整安装"
-  echo -e "${GREEN}2.${NC} 仅安装/更新"
-  echo -e "${GREEN}3.${NC} 卸载"
-  echo -e "----------------- 操作管理 ----------------"
-  echo -e "${GREEN}4.${NC} 启动"
-  echo -e "${GREEN}5.${NC} 停止"
-  echo -e "${GREEN}6.${NC} 重启"
-  echo -e "----------------- 配置管理 ----------------"
-  echo -e "${GREEN}7.${NC} 分享链接与二维码"
-  echo -e "${GREEN}8.${NC} 信息统计"
-  echo -e "${GREEN}9.${NC} 管理配置"
+  echo -e " Версия      : ${GREEN}v2024-12-31${NC}"
+  echo -e " Описание   : Скрипт управления Xray"
+  echo -e "----------------- Управление установкой ----------------"
+  echo -e "${GREEN}1.${NC} Полная установка"
+  echo -e "${GREEN}2.${NC} Только установка/обновление"
+  echo -e "${GREEN}3.${NC} Удаление"
+  echo -e "----------------- Управление операциями ----------------"
+  echo -e "${GREEN}4.${NC} Запуск"
+  echo -e "${GREEN}5.${NC} Остановка"
+  echo -e "${GREEN}6.${NC} Перезапуск"
+  echo -e "----------------- Управление конфигурацией ----------------"
+  echo -e "${GREEN}7.${NC} Ссылка для分享 и QR-код"
+  echo -e "${GREEN}8.${NC} Статистика"
+  echo -e "${GREEN}9.${NC} Управление конфигурацией"
   echo -e "-------------------------------------------"
-  echo -e "${RED}0.${NC} 退出"
+  echo -e "${RED}0.${NC} Выход"
   main_processes
 }
 
-[[ $EUID -ne 0 ]] && _error "请使用 root 权限运行该脚本"
+[[ $EUID -ne 0 ]] && _error "Пожалуйста, запустите скрипт с правами root"
 
 main

@@ -21,45 +21,45 @@ export PATH
 
 trap egress EXIT
 
-# 颜色定义
+# Цвета
 readonly RED='\033[1;31;31m'
 readonly GREEN='\033[1;31;32m'
 readonly YELLOW='\033[1;31;33m'
 readonly NC='\033[0m'
 
-# 目录
+# Директории
 readonly CUR_DIR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 readonly CUR_FILE="$(basename $0)"
 readonly TMPFILE_DIR="$(mktemp -d -p "${CUR_DIR}" -t nginxtemp.XXXXXXXX)" || exit 1
 
-# 全局常量
+# Глобальные константы
 readonly NGINX_PATH="/usr/local/nginx"
 readonly NGINX_LOG_PATH="/var/log/nginx"
 
-# 全局变量
+# Глобальные переменные
 declare is_enable_brotli=""
 
-# 退出处理
+# Выход
 function egress() {
   [[ -e "${TMPFILE_DIR}/swap" ]] && swapoff "${TMPFILE_DIR}/swap"
   rm -rf "${TMPFILE_DIR}"
 }
 
-# 状态打印函数
+# Функции вывода
 function print_info() {
-  printf "${GREEN}[信息] ${NC}%s\n" "$*"
+  printf "${GREEN}[Инфо] ${NC}%s\n" "$*"
 }
 
 function print_warn() {
-  printf "${YELLOW}[警告] ${NC}%s\n" "$*"
+  printf "${YELLOW}[Предупреждение] ${NC}%s\n" "$*"
 }
 
 function print_error() {
-  printf "${RED}[错误] ${NC}%s\n" "$*"
+  printf "${RED}[Ошибка] ${NC}%s\n" "$*"
   exit 1
 }
 
-# 工具函数
+# Утилиты
 function _exists() {
   local cmd="$1"
   if eval type type >/dev/null 2>&1; then
@@ -92,10 +92,10 @@ function _os_ver() {
 
 function _error_detect() {
   local cmd="$1"
-  print_info "正在执行命令: ${cmd}"
+  print_info "Выполняется команда: ${cmd}"
   eval ${cmd}
   if [[ $? -ne 0 ]]; then
-    print_error "执行命令 (${cmd}) 失败，请检查并重试。"
+    print_error "Ошибка выполнения команды (${cmd}), проверьте и повторите."
   fi
 }
 
@@ -112,17 +112,17 @@ function _install() {
       packages_name="dnf-plugins-core epel-release epel-next-release ${packages_name}"
       installed_packages="$(dnf list installed 2>/dev/null)"
       if [[ -n "$(_os_ver)" && "$(_os_ver)" -eq 9 ]]; then
-        # 启用 EPEL 和 Remi 仓库
+        # Включить EPEL и Remi репозитории
         if [[ "${packages_name}" =~ "geoip-devel" ]] && ! echo "${installed_packages}" | grep -iwq "geoip-devel"; then
           dnf update -y
           _error_detect "dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
           _error_detect "dnf install -y https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm"
           _error_detect "dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm"
-          # 启用 Remi 模块化仓库
+          # Включить модульный репозиторий Remi
           _error_detect "dnf config-manager --set-enabled remi-modular"
-          # 刷新包信息
+          # Обновить информацию о пакетах
           _error_detect "dnf update --refresh"
-          # 安装 GeoIP-devel，指定使用 Remi 仓库
+          # Установить GeoIP-devel, указав репозиторий Remi
           dnf update -y
           _error_detect "dnf --enablerepo=remi install -y GeoIP-devel"
         fi
@@ -160,26 +160,26 @@ function _install() {
   esac
 }
 
-# 检查操作系统
+# Проверка ОС
 function check_os() {
-  [[ -z "$(_os)" ]] && print_error "不支持的操作系统。"
+  [[ -z "$(_os)" ]] && print_error "Неподдерживаемая ОС."
   case "$(_os)" in
   ubuntu)
-    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 20 ]] && print_error "不支持的操作系统，请切换到 Ubuntu 20+ 并重试。"
+    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 20 ]] && print_error "Неподдерживаемая ОС, переключитесь на Ubuntu 20+ и повторите."
     ;;
   debian)
-    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 10 ]] && print_error "不支持的操作系统，请切换到 Debian 10+ 并重试。"
+    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 10 ]] && print_error "Неподдерживаемая ОС, переключитесь на Debian 10+ и повторите."
     ;;
   centos)
-    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 7 ]] && print_error "不支持的操作系统，请切换到 CentOS 7+ 并重试。"
+    [[ -n "$(_os_ver)" && "$(_os_ver)" -lt 7 ]] && print_error "Неподдерживаемая ОС, переключитесь на CentOS 7+ и повторите."
     ;;
   *)
-    print_error "不支持的操作系统。"
+    print_error "Неподдерживаемая ОС."
     ;;
   esac
 }
 
-# 启用交换分区
+# Включить swap
 function swap_on() {
   local mem=${1}
   if [[ ${mem} -ne '0' ]]; then
@@ -191,7 +191,7 @@ function swap_on() {
   fi
 }
 
-# 备份文件
+# Резервное копирование
 function backup_files() {
   local backup_dir="$1"
   local current_date="$(date +%F)"
@@ -200,35 +200,35 @@ function backup_files() {
       local file_name="$(basename "$file")"
       local backup_file="${backup_dir}/${file_name}_${current_date}"
       mv "$file" "$backup_file"
-      echo "备份: ${file} -> ${backup_file}。"
+      echo "Резервная копия: ${file} -> ${backup_file}."
     fi
   done
 }
 
-# 编译依赖项
+# Зависимости для компиляции
 function compile_dependencies() {
-  # 常规依赖
+  # Основные зависимости
   _install ca-certificates curl wget gcc make git openssl tzdata
   case "$(_os)" in
   centos)
-    # 工具链
+    # Инструменты
     _install gcc-c++ perl-IPC-Cmd perl-Getopt-Long perl-Data-Dumper
-    # 编译依赖
+    # Зависимости для компиляции
     _install pcre2-devel zlib-devel libxml2-devel libxslt-devel gd-devel geoip-devel perl-ExtUtils-Embed gperftools-devel perl-devel brotli-devel
     if ! perl -e "use FindBin" &>/dev/null; then
       _install perl-FindBin
     fi
     ;;
   debian | ubuntu)
-    # 工具链
+    # Инструменты
     _install g++ perl-base perl
-    # 编译依赖
+    # Зависимости для компиляции
     _install libpcre2-dev zlib1g-dev libxml2-dev libxslt1-dev libgd-dev libgeoip-dev libgoogle-perftools-dev libperl-dev libbrotli-dev
     ;;
   esac
 }
 
-# 生成编译选项
+# Генерация флагов компиляции
 function gen_cflags() {
   cflags=('-g0' '-O3')
   if gcc -v --help 2>&1 | grep -qw "\\-fstack\\-reuse"; then
@@ -281,30 +281,30 @@ function gen_cflags() {
   fi
 }
 
-# 源码编译
+# Компиляция из исходников
 function source_compile() {
   cd "${TMPFILE_DIR}"
-  # 最新版本
-  print_info "检索 Nginx 和 OpenSSL 的最新版本。"
+  # Последние версии
+  print_info "Получение последних версий Nginx и OpenSSL."
   local nginx_version="$(wget -qO- --no-check-certificate https://api.github.com/repos/nginx/nginx/tags | grep 'name' | cut -d\" -f4 | grep 'release' | head -1 | sed 's/release/nginx/')"
   local openssl_version="openssl-$(wget -qO- --no-check-certificate https://api.github.com/repos/openssl/openssl/tags | grep 'name' | cut -d\" -f4 | grep -Eoi '^openssl-([0-9]\.?){3}$' | head -1)"
-  # 生成编译选项
+  # Генерация флагов компиляции
   gen_cflags
   # nginx
-  print_info "下载最新版本的 Nginx。"
+  print_info "Загрузка последней версии Nginx."
   _error_detect "curl -fsSL -o ${nginx_version}.tar.gz https://nginx.org/download/${nginx_version}.tar.gz"
   tar -zxf "${nginx_version}.tar.gz"
   # openssl
-  print_info "下载最新版本的 OpenSSL。"
+  print_info "Загрузка последней версии OpenSSL."
   _error_detect "curl -fsSL -o ${openssl_version}.tar.gz https://github.com/openssl/openssl/archive/${openssl_version#*-}.tar.gz"
   tar -zxf "${openssl_version}.tar.gz"
   if [[ "${is_enable_brotli}" =~ ^[Yy]$ ]]; then
     # brotli
-    print_info "检索 ngx_brotli 并构建依赖项。"
+    print_info "Получение ngx_brotli и сборка зависимостей."
     _error_detect "git clone https://github.com/google/ngx_brotli && cd ngx_brotli && git submodule update --init"
     cd "${TMPFILE_DIR}"
   fi
-  # 配置
+  # Конфигурация
   cd "${nginx_version}"
   sed -i "s/OPTIMIZE[ \\t]*=>[ \\t]*'-O'/OPTIMIZE          => '-O3'/g" src/http/modules/perl/Makefile.PL
   sed -i 's/NGX_PERL_CFLAGS="$CFLAGS `$NGX_PERL -MExtUtils::Embed -e ccopts`"/NGX_PERL_CFLAGS="`$NGX_PERL -MExtUtils::Embed -e ccopts` $CFLAGS"/g' auto/lib/perl/conf
@@ -314,36 +314,36 @@ function source_compile() {
   else
     ./configure --prefix="${NGINX_PATH}" --user=root --group=root --with-threads --with-file-aio --with-http_ssl_module --with-http_v2_module --with-http_v3_module --with-http_realip_module --with-http_addition_module --with-http_xslt_module=dynamic --with-http_image_filter_module=dynamic --with-http_geoip_module=dynamic --with-http_sub_module --with-http_dav_module --with-http_flv_module --with-http_mp4_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_auth_request_module --with-http_random_index_module --with-http_secure_link_module --with-http_degradation_module --with-http_slice_module --with-http_stub_status_module --with-http_perl_module=dynamic --with-mail=dynamic --with-mail_ssl_module --with-stream --with-stream_ssl_module --with-stream_realip_module --with-stream_geoip_module=dynamic --with-stream_ssl_preread_module --with-google_perftools_module --with-compat --with-cc-opt="${cflags[*]}" --with-openssl="../${openssl_version}" --with-openssl-opt="${cflags[*]}"
   fi
-  print_info "申请 512MB 虚拟内存。"
+  print_info "Выделение 512MB виртуальной памяти."
   swap_on 512
-  # 编译
-  print_info "编译 Nginx。"
+  # Компиляция
+  print_info "Компиляция Nginx."
   _error_detect "make -j$(nproc)"
 }
 
-# 安装 nginx
+# Установка nginx
 function source_install() {
   source_compile
-  print_info "安装 Nginx。"
+  print_info "Установка Nginx."
   make install
   ln -sf "${NGINX_PATH}/sbin/nginx" /usr/sbin/nginx
 }
 
-# 更新 nginx
+# Обновление nginx
 function source_update() {
-  # 最新版本
-  print_info "检索 Nginx 和 OpenSSL 的最新版本。"
+  # Последние версии
+  print_info "Получение последних версий Nginx и OpenSSL."
   local latest_nginx_version="$(wget -qO- --no-check-certificate https://api.github.com/repos/nginx/nginx/tags | grep 'name' | cut -d\" -f4 | grep 'release' | head -1 | sed 's/release/nginx/')"
   local latest_openssl_version="$(wget -qO- --no-check-certificate https://api.github.com/repos/openssl/openssl/tags | grep 'name' | cut -d\" -f4 | grep -Eoi '^openssl-([0-9]\.?){3}$' | head -1)"
-  # 当前版本
-  print_info "读取 Nginx 和 OpenSSL 的当前版本。"
+  # Текущие версии
+  print_info "Чтение текущих версий Nginx и OpenSSL."
   local current_version_nginx="$(nginx -V 2>&1 | grep "^nginx version:.*" | cut -d / -f 2)"
   local current_version_openssl="$(nginx -V 2>&1 | grep "^built with OpenSSL" | awk '{print $4}')"
-  # 比较
-  print_info "判断是否需要更新。"
+  # Сравнение
+  print_info "Проверка необходимости обновления."
   if _version_ge "${latest_nginx_version#*-}" "${current_version_nginx}" || _version_ge "${latest_openssl_version#*-}" "${current_version_openssl}"; then
     source_compile
-    print_info "更新 Nginx。"
+    print_info "Обновление Nginx."
     mv "${NGINX_PATH}/sbin/nginx" "${NGINX_PATH}/sbin/nginx_$(date +%F)"
     backup_files "${NGINX_PATH}/modules"
     cp objs/nginx "${NGINX_PATH}/sbin/"
@@ -356,7 +356,7 @@ function source_update() {
         kill -HUP $(cat /run/nginx.pid.oldbin)
         kill -QUIT $(cat /run/nginx.pid.oldbin)
       else
-        print_info "未找到旧的 Nginx 进程。跳过后续步骤。"
+        print_info "Старые процессы Nginx не найдены. Пропуск следующих шагов."
       fi
     fi
     return 0
@@ -364,7 +364,7 @@ function source_update() {
   return 1
 }
 
-# 卸载 nginx
+# Удаление nginx
 function purge_nginx() {
   systemctl stop nginx
   rm -rf "${NGINX_PATH}"
@@ -406,21 +406,21 @@ EOF
 
 function show_help() {
   cat <<EOF
-用法: $0 [选项]
+Использование: $0 [опции]
 
-选项:
-  -i, --install      安装 Nginx
-  -u, --update       更新 Nginx
-  -b, --brotli       启用 Brotli 压缩
-  -p, --purge        卸载 Nginx
-  -h, --help         显示帮助信息
+Опции:
+  -i, --install      Установить Nginx
+  -u, --update       Обновить Nginx
+  -b, --brotli       Включить сжатие Brotli
+  -p, --purge        Удалить Nginx
+  -h, --help         Показать справку
 EOF
   exit 0
 }
 
 check_os
 
-# 参数解析
+# Парсинг аргументов
 while [[ $# -gt 0 ]]; do
   case "$1" in
   -i | --install)
@@ -439,13 +439,13 @@ while [[ $# -gt 0 ]]; do
     show_help
     ;;
   *)
-    print_error "无效选项: '$1'。使用 '$0 -h/--help' 查看用法信息。"
+    print_error "Неверная опция: '$1'. Используйте '$0 -h/--help' для справки."
     ;;
   esac
   shift
 done
 
-# 执行操作
+# Выполнение действия
 case "${action}" in
 install)
   compile_dependencies
